@@ -1,12 +1,13 @@
 // --- 1. FIREBASE SETUP ---
-const firebaseConfig = {
-  apiKey: "AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
-  authDomain: "village-connect-dabff.firebaseapp.com",
-  projectId: "village-connect-dabff",
-  storageBucket: "village-connect-dabff.firebasestorage.app",
-  messagingSenderId: "885677166072",
-  appId: "1:885677166072:web:49ae174770de8d00a49a0d"
-};
+
+const firebaseConfig ={
+apiKey:"AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
+authDomain:"village-connect-dabff.firebaseapp.com",
+projectId:"village-connect-dabff", 
+storageBucket:"village-connect-dabff.firebasestorage.app",
+messagingSenderId:"885677166072", 
+appId:"1:885677166072:web:49ae174770de8de0a49a0d"
+}
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
