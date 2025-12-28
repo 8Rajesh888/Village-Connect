@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Connect</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+        <div class="add-form">
+            <h3>➕ Add a New Tradition</h3>
+            <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
+            <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
+            <input type="text" id="newDate" placeholder="Date (e.g. Sept 10)">
+            <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
+            <button onclick="addTradition()" style="background-color: #4CAF50;">Submit Tradition</button>
+        </div>
+
+        <hr> ```
+
+
+
+
+    <div class="app-container">
+        <h1>🇮🇳 Village Connect</h1>
+        <p>Discover local traditions & events.</p>
+
+        <div class="search-box">
+            <input type="text" id="cityInput" placeholder="Enter Village/City (e.g. Kavutaram)">
+            <button onclick="findTraditions()">Search</button>
+        </div>
+
+        <div id="resultList"></div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
