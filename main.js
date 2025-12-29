@@ -18,31 +18,42 @@ const db = firebase.firestore(); // This is your Cloud Database
 function findTraditions() {
     let input = document.getElementById("cityInput").value.trim().toLowerCase();
     let resultBox = document.getElementById("resultList");
-    resultBox.innerHTML = "Loading from cloud..."; // Show loading state
+    resultBox.innerHTML = "Loading from cloud...";
 
-    // Ask Firebase for data
     db.collection("traditions").where("city", "==", input)
     .get()
-    .then((querySnapshot) => {// Loop through the cloud results
-querySnapshot.forEach((doc) => {
-    let t = doc.data(); 
-    let id = doc.id; // 🔑 GRAB THE UNIQUE ID
+    .then((querySnapshot) => {
+        resultBox.innerHTML = ""; // Clear loading text
 
-let likeCount = t.likes || 0; // If 'likes' doesn't exist, assume 0
+        if (querySnapshot.empty) {
+            resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
+        } else {
+            querySnapshot.forEach((doc) => {
+                let t = doc.data();
+                let id = doc.id; // Get the document ID for buttons
+                let likeCount = t.Likes || 0; // Default to 0 if field doesn't exist
 
-    resultBox.innerHTML += `
-        <div class="card">
-            <h3>${t.title}</h3>
-            <p>${t.desc}</p>
-            <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
-            <br><br>
-            <button onclick="deleteTradition('${id}')" style="background: #ff4444; color: white;">
-                Delete
-            </button>
-        </div>
-    `;
-});
-})
+                resultBox.innerHTML += `
+                    <div class="card">
+                        <h3>${t.title}</h3>
+                        <p>${t.desc}</p>
+                        <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
+                        <br><br>
+                        
+                        <button onclick="likeTradition('${id}')" 
+                            style="background: white; border: 1px solid red; color: red; cursor: pointer;">
+                            ❤️ ${likeCount}
+                        </button>
+
+                        <button onclick="deleteTradition('${id}')" 
+                            style="background: #ff4d4d; color: white; margin-left: 10px; border: none; padding: 5px 10px; cursor: pointer;">
+                            Delete
+                        </button>
+                    </div>
+                `;
+            });
+        }
+    })
     .catch((error) => {
         console.error("Error getting documents: ", error);
         resultBox.innerHTML = "Error connecting to server.";
@@ -104,4 +115,18 @@ function deleteTradition(id) {
             alert("Error deleting: " + error.message);
         });
     }
+}
+// --- 5. THE LIKE FUNCTION ---
+function likeTradition(id) {
+    // Tell Firebase to add +1 to the 'likes' field
+    db.collection("traditions").doc(id).update({
+        likes: firebase.firestore.FieldValue.increment(1)
+    })
+    .then(() => {
+        // Just refresh the list to show the new number
+        findTraditions(); 
+    })
+    .catch((error) => {
+        console.error("Error liking: ", error);
+    });
 }
