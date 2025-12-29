@@ -123,14 +123,24 @@ function deleteTradition(id) {
     }
 }
 // --- 5. THE LIKE FUNCTION ---
+// --- 5. THE SMART LIKE FUNCTION ---
 function likeTradition(id) {
-    // Tell Firebase to add +1 to the 'likes' field
+    // 1. Check if this phone already liked this specific tradition
+    let alreadyLiked = localStorage.getItem("liked_" + id);
+
+    if (alreadyLiked === "yes") {
+        alert("You already liked this! ❤️");
+        return; // 🛑 STOP HERE. Do not talk to Firebase.
+    }
+
+    // 2. If not, send the Like to Firebase
     db.collection("traditions").doc(id).update({
         likes: firebase.firestore.FieldValue.increment(1)
     })
     .then(() => {
-        // Just refresh the list to show the new number
-        
+        console.log("Like added!");
+        // 3. 💾 SAVE THE MARK so they can't do it again
+        localStorage.setItem("liked_" + id, "yes");
     })
     .catch((error) => {
         console.error("Error liking: ", error);
