@@ -23,26 +23,24 @@ function findTraditions() {
     // Ask Firebase for data
     db.collection("traditions").where("city", "==", input)
     .get()
-    .then((querySnapshot) => {
-        resultBox.innerHTML = ""; // Clear loading text
-        
-        if (querySnapshot.empty) {
-            resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
-        } else {
-            // Loop through the cloud results
-            querySnapshot.forEach((doc) => {
-                let t = doc.data(); // This is the object {city, title, desc...}
-                
-                resultBox.innerHTML += `
-                    <div class="card">
-                        <h3>${t.title}</h3>
-                        <p>${t.desc}</p>
-                        <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
-                    </div>
-                `;
-            });
-        }
-    })
+    .then((querySnapshot) => {// Loop through the cloud results
+querySnapshot.forEach((doc) => {
+    let t = doc.data(); 
+    let id = doc.id; // 🔑 GRAB THE UNIQUE ID
+
+    resultBox.innerHTML += `
+        <div class="card">
+            <h3>${t.title}</h3>
+            <p>${t.desc}</p>
+            <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
+            <br><br>
+            <button onclick="deleteTradition('${id}')" style="background: #ff4444; color: white;">
+                Delete
+            </button>
+        </div>
+    `;
+});
+})
     .catch((error) => {
         console.error("Error getting documents: ", error);
         resultBox.innerHTML = "Error connecting to server.";
@@ -86,4 +84,21 @@ function addTradition() {
         console.error("Error writing document: ", error);
         alert("Error saving: " + error.message);
     });
+}
+// --- 4. THE DELETE FUNCTION ---
+function deleteTradition(id) {
+    // 1. Confirm with the user
+    if (confirm("Are you sure you want to delete this?") === true) {
+        
+        // 2. Delete from Cloud
+        db.collection("traditions").doc(id).delete()
+        .then(() => {
+            alert("Tradition deleted!");
+            findTraditions(); // 🔄 Refresh the list to remove the card
+        })
+        .catch((error) => {
+            console.error("Error removing document: ", error);
+            alert("Error deleting: " + error.message);
+        });
+    }
 }
