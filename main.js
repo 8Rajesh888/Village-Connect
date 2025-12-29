@@ -28,6 +28,8 @@ querySnapshot.forEach((doc) => {
     let t = doc.data(); 
     let id = doc.id; // 🔑 GRAB THE UNIQUE ID
 
+let likeCount = t.likes || 0; // If 'likes' doesn't exist, assume 0
+
     resultBox.innerHTML += `
         <div class="card">
             <h3>${t.title}</h3>
@@ -65,6 +67,7 @@ function addTradition() {
         title: titleInput,
         desc: descInput,
         date: dateInput,
+        likes:0,
         timestamp: firebase.firestore.FieldValue.serverTimestamp() // Time it was added
     })
     .then(() => {
