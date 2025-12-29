@@ -15,23 +15,31 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(); // This is your Cloud Database
 
 // --- 2. THE SEARCH FUNCTION (Cloud Version) ---
+// --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
 function findTraditions() {
     let input = document.getElementById("cityInput").value.trim().toLowerCase();
     let resultBox = document.getElementById("resultList");
-    resultBox.innerHTML = "Loading from cloud...";
 
+    if(input === "") {
+        resultBox.innerHTML = "<p>Please enter a city name.</p>";
+        return;
+    }
+
+    resultBox.innerHTML = "Listening for updates..."; 
+
+    // 📡 OPEN A LIVE CHANNEL (onSnapshot)
     db.collection("traditions").where("city", "==", input)
-    .get()
-    .then((querySnapshot) => {
-        resultBox.innerHTML = ""; // Clear loading text
-
+    .onSnapshot((querySnapshot) => {
+        resultBox.innerHTML = ""; // Clear old list
+        
         if (querySnapshot.empty) {
             resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
         } else {
+            // Loop through the LIVE results
             querySnapshot.forEach((doc) => {
-                let t = doc.data();
-                let id = doc.id; // Get the document ID for buttons
-                let likeCount = t.Likes || 0; // Default to 0 if field doesn't exist
+                let t = doc.data(); 
+                let id = doc.id;
+                let likeCount = t.likes || 0; 
 
                 resultBox.innerHTML += `
                     <div class="card">
@@ -40,25 +48,23 @@ function findTraditions() {
                         <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
                         <br><br>
                         
-                        <button onclick="likeTradition('${id}')" 
-                            style="background: white; border: 1px solid red; color: red; cursor: pointer;">
-                            ❤️ ${likeCount}
+                        <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid red; color: red; margin-right: 10px; cursor: pointer;">
+                           ❤️ ${likeCount}
                         </button>
 
-                        <button onclick="deleteTradition('${id}')" 
-                            style="background: #ff4d4d; color: white; margin-left: 10px; border: none; padding: 5px 10px; cursor: pointer;">
+                        <button onclick="deleteTradition('${id}')" style="background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer;">
                             Delete
                         </button>
                     </div>
                 `;
             });
         }
-    })
-    .catch((error) => {
+    }, (error) => {
         console.error("Error getting documents: ", error);
         resultBox.innerHTML = "Error connecting to server.";
     });
 }
+
 
 // --- 3. THE ADD FUNCTION (Cloud Version) ---
 function addTradition() {
@@ -92,7 +98,7 @@ function addTradition() {
         
         // Auto Search
         document.getElementById("cityInput").value = cityInput;
-        findTraditions();
+        
     })
     .catch((error) => {
         console.error("Error writing document: ", error);
@@ -108,7 +114,7 @@ function deleteTradition(id) {
         db.collection("traditions").doc(id).delete()
         .then(() => {
             alert("Tradition deleted!");
-            findTraditions(); // 🔄 Refresh the list to remove the card
+
         })
         .catch((error) => {
             console.error("Error removing document: ", error);
@@ -124,7 +130,7 @@ function likeTradition(id) {
     })
     .then(() => {
         // Just refresh the list to show the new number
-        findTraditions(); 
+        
     })
     .catch((error) => {
         console.error("Error liking: ", error);
