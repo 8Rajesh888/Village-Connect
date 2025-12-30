@@ -1,4 +1,6 @@
 // --- 1. FIREBASE SETUP ---
+// --- GLOBAL VARIABLES ---
+var editId = null; // If this is null, we are Adding. If it has an ID, we are Editing.
 
 const firebaseConfig ={
 apiKey:"AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
@@ -55,14 +57,18 @@ function findTraditions() {
                         <p>${t.desc}</p>
                         <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
                         <br><br>
-                        
-                        <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid ${btnColor}; color: ${btnColor}; cursor: ${btnCursor}; margin-right: 10px;">
+                                                <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid ${btnColor}; color: ${btnColor}; cursor: ${btnCursor}; margin-right: 10px;">
                            ❤️ ${likeCount}
+                        </button>
+
+                        <button onclick="editTradition('${id}')" style="background: orange; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-right: 5px;">
+                            Edit
                         </button>
 
                         <button onclick="deleteTradition('${id}')" style="background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer;">
                             Delete
                         </button>
+
                     </div>
                 `;
             });
@@ -156,5 +162,28 @@ function likeTradition(id) {
         console.error("Error liking: ", error);
         localStorage.removeItem("liked_" + id); 
         alert("Connection failed. Try liking again.");
+    });
+}
+// --- 6. THE EDIT FUNCTION (Prepare the form) ---
+function editTradition(id) {
+    // 1. Scroll to top so user sees the form
+    window.scrollTo(0, 0);
+
+    // 2. Get the data for this specific ID
+    db.collection("traditions").doc(id).get().then((doc) => {
+        let data = doc.data();
+        
+        // 3. Put the data back into the input boxes
+        document.getElementById("newCity").value = data.city;
+        document.getElementById("newTitle").value = data.title;
+        document.getElementById("newDate").value = data.date;
+        document.getElementById("newDesc").value = data.desc;
+
+        // 4. Set the Global Variable so we know we are editing
+        editId = id; 
+
+        // 5. Change the Button Text to show we are in "Update Mode"
+        document.querySelector("button[onclick='addTradition()']").innerText = "Update Tradition";
+        document.querySelector("button[onclick='addTradition()']").style.background = "orange";
     });
 }
