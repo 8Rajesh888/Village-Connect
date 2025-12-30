@@ -16,30 +16,18 @@ const db = firebase.firestore(); // This is your Cloud Database
 
 // --- 2. THE SEARCH FUNCTION (Cloud Version) ---
 // --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
-function findTraditions() {
-    let input = document.getElementById("cityInput").value.trim().toLowerCase();
-    let resultBox = document.getElementById("resultList");
-
-    if(input === "") {
-        resultBox.innerHTML = "<p>Please enter a city name.</p>";
-        return;
-    }
-
-    resultBox.innerHTML = "Listening for updates..."; 
-
-    // 📡 OPEN A LIVE CHANNEL (onSnapshot)
-    db.collection("traditions").where("city", "==", input)
-    .onSnapshot((querySnapshot) => {
-        resultBox.innerHTML = ""; // Clear old list
-        
-        if (querySnapshot.empty) {
-            resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
-        } else {
-            // Loop through the LIVE results
+function findTraditions()   {      // Loop through the LIVE results
             querySnapshot.forEach((doc) => {
                 let t = doc.data(); 
                 let id = doc.id;
                 let likeCount = t.likes || 0; 
+
+                // 1. CHECK LOCAL STORAGE (Did this phone like it?)
+                let userLiked = localStorage.getItem("liked_" + id) === "yes";
+                
+                // 2. SET STYLES (Grey if liked, Red if not)
+                let btnColor = userLiked ? "grey" : "red"; 
+                let btnCursor = userLiked ? "not-allowed" : "pointer";
 
                 resultBox.innerHTML += `
                     <div class="card">
@@ -48,7 +36,7 @@ function findTraditions() {
                         <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
                         <br><br>
                         
-                        <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid red; color: red; margin-right: 10px; cursor: pointer;">
+                        <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid ${btnColor}; color: ${btnColor}; cursor: ${btnCursor}; margin-right: 10px;">
                            ❤️ ${likeCount}
                         </button>
 
@@ -58,13 +46,7 @@ function findTraditions() {
                     </div>
                 `;
             });
-        }
-    }, (error) => {
-        console.error("Error getting documents: ", error);
-        resultBox.innerHTML = "Error connecting to server.";
-    });
 }
-
 
 // --- 3. THE ADD FUNCTION (Cloud Version) ---
 function addTradition() {
@@ -125,7 +107,7 @@ function deleteTradition(id) {
 // --- 5. THE LIKE FUNCTION ---
 // --- 5. THE SMART LIKE FUNCTION ---
 function likeTradition(id) {
-    // 1. Check if this phone already liked this specific tradition
+    // 1. Check: Did this specific phone already like this specific ID?
     let alreadyLiked = localStorage.getItem("liked_" + id);
 
     if (alreadyLiked === "yes") {
@@ -139,10 +121,12 @@ function likeTradition(id) {
     })
     .then(() => {
         console.log("Like added!");
-        // 3. 💾 SAVE THE MARK so they can't do it again
+        
+        // 3. 💾 STAMP THE HAND: Save to phone memory
         localStorage.setItem("liked_" + id, "yes");
     })
     .catch((error) => {
         console.error("Error liking: ", error);
     });
 }
+
