@@ -1,6 +1,52 @@
 // --- 1. FIREBASE SETUP ---
 // --- GLOBAL VARIABLES ---
 var editId = null; // If this is null, we are Adding. If it has an ID, we are Editing.
+// --- AUTH SETUP ---
+var currentUser = null; // Holds the logged-in user
+
+// 1. LOGIN
+function googleLogin() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+        console.log("User logged in:", result.user);
+    })
+    .catch((error) => {
+        console.error("Login failed:", error);
+        alert("Login Error: " + error.message);
+    });
+}
+
+// 2. LOGOUT
+function logout() {
+    firebase.auth().signOut().then(() => {
+        alert("Logged out!");
+        location.reload(); // Refresh the page
+    });
+}
+
+// 3. SECURITY GUARD (Runs automatically) 👮
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // 🟢 LOGGED IN
+        currentUser = user;
+        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
+        document.getElementById("btnLogin").style.display = "none";
+        document.getElementById("btnLogout").style.display = "block";
+        
+        // Show the "Add Form"
+        document.querySelector("addbox").style.display = "block"; 
+    } else {
+        // 🔴 LOGGED OUT
+        currentUser = null;
+        document.getElementById("welcomeMsg").innerText = "Guest Mode (Read Only)";
+        document.getElementById("btnLogin").style.display = "block";
+        document.getElementById("btnLogout").style.display = "none";
+        
+        // Hide the "Add Form"
+        document.querySelector("addbox").style.display = "none"; 
+    }
+});
 
 const firebaseConfig ={
 apiKey:"AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
@@ -167,31 +213,27 @@ function deleteTradition(id) {
 // --- 5. THE LIKE FUNCTION ---
 // --- 5. THE SMART LIKE FUNCTION ---
 // --- 5. THE INSTANT-LOCK LIKE FUNCTION ---
+// --- 5. SECURE LIKE FUNCTION ---
 function likeTradition(id) {
-    // 1. Check if locked
+    // 🔒 SECURITY CHECK
+    if (!currentUser) {
+        alert("Please Sign In to like posts! 🔐");
+        return; 
+    }
+
+    // (The rest of your code stays the same)
     if (localStorage.getItem("liked_" + id) === "yes") {
         alert("You already liked this! ❤️");
         return; 
     }
 
-    // 2. 🔒 LOCK IMMEDIATELY (Don't wait for internet!)
-    // We assume it will work and lock the button right now.
+    // Lock and Update
     localStorage.setItem("liked_" + id, "yes");
-
-    // 3. Send to Cloud in background
     db.collection("traditions").doc(id).update({
         likes: firebase.firestore.FieldValue.increment(1)
-    })
-    .then(() => {
-        console.log("Like sent to cloud!");
-    })
-    .catch((error) => {
-        // 4. 🔓 UNLOCK if internet fails (Rollback)
-        console.error("Error liking: ", error);
-        localStorage.removeItem("liked_" + id); 
-        alert("Connection failed. Try liking again.");
     });
 }
+
 // --- 6. THE EDIT FUNCTION (Prepare the form) ---
 function editTradition(id) {
     // 1. Scroll to top so user sees the form

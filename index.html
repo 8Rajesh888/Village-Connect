@@ -7,7 +7,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-        <div class="add-form">
+    <div id="userBar" style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+    <span id="welcomeMsg">Welcome, Guest</span>
+    
+    <div>
+        <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+            🔵 Sign In
+        </button>
+
+        <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+            Logout
+        </button>
+    </div>
+</div>
+
+        <div class="add-form" id="addbox">
             <h3>➕ Add a New Tradition</h3>
             <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
             <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
@@ -31,9 +45,10 @@
         </div>
 
         <div id="resultList"></div>
-    </div>
-<<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<script src="main.js"></script>
+    </div>    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script src="main.js"></script>
 </body>
 </html>
