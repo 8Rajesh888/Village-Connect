@@ -81,6 +81,7 @@ function findTraditions() {
 
 
 // --- 3. THE ADD FUNCTION (Cloud Version) ---
+// --- 3. THE SMART ADD/UPDATE FUNCTION ---
 function addTradition() {
     let cityInput = document.getElementById("newCity").value.trim().toLowerCase();
     let titleInput = document.getElementById("newTitle").value.trim();
@@ -92,33 +93,60 @@ function addTradition() {
         return;
     }
 
-    // Save to Firebase Cloud
-    db.collection("traditions").add({
-        city: cityInput,
-        title: titleInput,
-        desc: descInput,
-        date: dateInput,
-        likes:0,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Time it was added
-    })
-    .then(() => {
-        alert("Success! Saved to the Global Cloud.");
-        
-        // Clear Inputs
-        document.getElementById("newCity").value = "";
-        document.getElementById("newTitle").value = "";
-        document.getElementById("newDate").value = "";
-        document.getElementById("newDesc").value = "";
-        
-        // Auto Search
-        document.getElementById("cityInput").value = cityInput;
-        
-    })
-    .catch((error) => {
-        console.error("Error writing document: ", error);
-        alert("Error saving: " + error.message);
-    });
+    // 🔀 THE FORK IN THE ROAD
+    if (editId) {
+        // --- OPTION A: UPDATE EXISTING ---
+        db.collection("traditions").doc(editId).update({
+            city: cityInput,
+            title: titleInput,
+            date: dateInput,
+            desc: descInput
+        })
+        .then(() => {
+            alert("Tradition Updated Successfully! ✏️");
+            resetForm(); // Turn button back to Green
+        })
+        .catch((error) => {
+            console.error("Error updating: ", error);
+        });
+
+    } else {
+        // --- OPTION B: CREATE NEW ---
+        db.collection("traditions").add({
+            city: cityInput,
+            title: titleInput,
+            desc: descInput,
+            date: dateInput,
+            likes: 0,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            alert("Success! Saved to Cloud.");
+            resetForm(); // Clear inputs
+        })
+        .catch((error) => {
+            console.error("Error adding: ", error);
+        });
+    }
 }
+
+// --- HELPER: RESET EVERYTHING ---
+function resetForm() {
+    // 1. Clear text boxes
+    document.getElementById("newCity").value = "";
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newDate").value = "";
+    document.getElementById("newDesc").value = "";
+    
+    // 2. Forget the Edit ID
+    editId = null;
+
+    // 3. Turn Button back to Green (Add Mode)
+    let btn = document.querySelector("button[onclick='addTradition()']");
+    btn.innerText = "Submit Tradition";
+    btn.style.background = "#4CAF50"; // Green
+}
+
 // --- 4. THE DELETE FUNCTION ---
 function deleteTradition(id) {
     // 1. Confirm with the user
