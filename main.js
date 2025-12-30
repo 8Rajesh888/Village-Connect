@@ -16,7 +16,27 @@ const db = firebase.firestore(); // This is your Cloud Database
 
 // --- 2. THE SEARCH FUNCTION (Cloud Version) ---
 // --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
-function findTraditions()   {      // Loop through the LIVE results
+// --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
+function findTraditions() {
+    let input = document.getElementById("cityInput").value.trim().toLowerCase();
+    let resultBox = document.getElementById("resultList");
+
+    if(input === "") {
+        resultBox.innerHTML = "<p>Please enter a city name.</p>";
+        return;
+    }
+
+    resultBox.innerHTML = "Listening for updates..."; 
+
+    // 📡 OPEN A LIVE CHANNEL (This line defines 'querySnapshot' 👇)
+    db.collection("traditions").where("city", "==", input)
+    .onSnapshot((querySnapshot) => {
+        resultBox.innerHTML = ""; // Clear old list
+        
+        if (querySnapshot.empty) {
+            resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
+        } else {
+            // Loop through the LIVE results
             querySnapshot.forEach((doc) => {
                 let t = doc.data(); 
                 let id = doc.id;
@@ -46,7 +66,13 @@ function findTraditions()   {      // Loop through the LIVE results
                     </div>
                 `;
             });
+        }
+    }, (error) => {
+        console.error("Error getting documents: ", error);
+        resultBox.innerHTML = "Error connecting to server.";
+    });
 }
+
 
 // --- 3. THE ADD FUNCTION (Cloud Version) ---
 function addTradition() {
