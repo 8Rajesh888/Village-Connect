@@ -26,25 +26,36 @@ function logout() {
 }
 
 // 3. SECURITY GUARD (Runs automatically) 👮
+// --- 3. AUTH STATE LISTENER (Safe Version) 👮 ---
 firebase.auth().onAuthStateChanged((user) => {
+    // 1. Try to find the box using BOTH names (just in case)
+    let box = document.getElementById("addBox") || document.querySelector(".add-form");
+
     if (user) {
         // 🟢 LOGGED IN
         currentUser = user;
         document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
         document.getElementById("btnLogin").style.display = "none";
-        document.getElementById("btnLogout").style.display = "block";
+        document.getElementById("btnLogout").style.display = "inline-block";
         
-        // Show the "Add Form"
-        document.querySelector("addbox").style.display = "block"; 
+        // Safety Check: Only show if box exists
+        if (box) {
+            box.style.display = "block";
+        } else {
+            console.log("⚠️ WARNING: Could not find the Green Box to show it!");
+        }
+
     } else {
         // 🔴 LOGGED OUT
         currentUser = null;
-        document.getElementById("welcomeMsg").innerText = "Guest Mode (Read Only)";
-        document.getElementById("btnLogin").style.display = "block";
+        document.getElementById("welcomeMsg").innerText = "Guest Mode";
+        document.getElementById("btnLogin").style.display = "inline-block";
         document.getElementById("btnLogout").style.display = "none";
-        
-        // Hide the "Add Form"
-        document.querySelector("addbox").style.display = "none"; 
+
+        // Safety Check: Only hide if box exists
+        if (box) {
+            box.style.display = "none";
+        }
     }
 });
 
