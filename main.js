@@ -27,34 +27,42 @@ function logout() {
 
 // 3. SECURITY GUARD (Runs automatically) 👮
 // --- 3. AUTH STATE LISTENER (Safe Version) 👮 ---
+// --- 3. AUTH STATE LISTENER (Bulletproof Version) 🛡️ ---
 firebase.auth().onAuthStateChanged((user) => {
-    // 1. Try to find the box using BOTH names (just in case)
-    let box = document.getElementById("addBox") || document.querySelector(".add-form");
+    // We try to find the Green Box using ID or Class
+    let addBox = document.getElementById("addBox") || document.querySelector(".add-form");
+    let welcome = document.getElementById("welcomeMsg");
+    let btnIn = document.getElementById("btnLogin");
+    let btnOut = document.getElementById("btnLogout");
 
     if (user) {
         // 🟢 LOGGED IN
+        console.log("User is logged in:", user.email);
         currentUser = user;
-        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
-        document.getElementById("btnLogin").style.display = "none";
-        document.getElementById("btnLogout").style.display = "inline-block";
+
+        if (welcome) welcome.innerText = "Hi, " + user.displayName;
+        if (btnIn) btnIn.style.display = "none";
+        if (btnOut) btnOut.style.display = "inline-block";
         
-        // Safety Check: Only show if box exists
-        if (box) {
-            box.style.display = "block";
+        // Safety Check for Green Box
+        if (addBox) {
+            addBox.style.display = "block";
         } else {
-            console.log("⚠️ WARNING: Could not find the Green Box to show it!");
+            console.log("⚠️ Note: 'addBox' not found in HTML, but login worked.");
         }
 
     } else {
         // 🔴 LOGGED OUT
+        console.log("User is logged out.");
         currentUser = null;
-        document.getElementById("welcomeMsg").innerText = "Guest Mode";
-        document.getElementById("btnLogin").style.display = "inline-block";
-        document.getElementById("btnLogout").style.display = "none";
 
-        // Safety Check: Only hide if box exists
-        if (box) {
-            box.style.display = "none";
+        if (welcome) welcome.innerText = "Guest Mode";
+        if (btnIn) btnIn.style.display = "inline-block";
+        if (btnOut) btnOut.style.display = "none";
+
+        // Safety Check for Green Box
+        if (addBox) {
+            addBox.style.display = "none";
         }
     }
 });
