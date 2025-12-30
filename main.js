@@ -132,27 +132,29 @@ function deleteTradition(id) {
 }
 // --- 5. THE LIKE FUNCTION ---
 // --- 5. THE SMART LIKE FUNCTION ---
+// --- 5. THE INSTANT-LOCK LIKE FUNCTION ---
 function likeTradition(id) {
-    // 1. Check: Did this specific phone already like this specific ID?
-    let alreadyLiked = localStorage.getItem("liked_" + id);
-
-    if (alreadyLiked === "yes") {
+    // 1. Check if locked
+    if (localStorage.getItem("liked_" + id) === "yes") {
         alert("You already liked this! ❤️");
-        return; // 🛑 STOP HERE. Do not talk to Firebase.
+        return; 
     }
 
-    // 2. If not, send the Like to Firebase
+    // 2. 🔒 LOCK IMMEDIATELY (Don't wait for internet!)
+    // We assume it will work and lock the button right now.
+    localStorage.setItem("liked_" + id, "yes");
+
+    // 3. Send to Cloud in background
     db.collection("traditions").doc(id).update({
         likes: firebase.firestore.FieldValue.increment(1)
     })
     .then(() => {
-        console.log("Like added!");
-        
-        // 3. 💾 STAMP THE HAND: Save to phone memory
-        localStorage.setItem("liked_" + id, "yes");
+        console.log("Like sent to cloud!");
     })
     .catch((error) => {
+        // 4. 🔓 UNLOCK if internet fails (Rollback)
         console.error("Error liking: ", error);
+        localStorage.removeItem("liked_" + id); 
+        alert("Connection failed. Try liking again.");
     });
 }
-
