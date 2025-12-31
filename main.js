@@ -11,7 +11,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 // 1. Authentication Listener
 auth.onAuthStateChanged(user => {
     if (user) {
@@ -27,15 +26,25 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// 2. Google Login
+// CHECK FOR REDIRECT RESULT (Add this block)
+auth.getRedirectResult().catch(error => {
+    if (error.code !== 'auth/no-auth-event') {
+        console.error("Login error:", error.message);
+    }
+});
+
+// 2. Google Login (Changed to Redirect for better mobile support)
 function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(error => console.error(error));
+    // Use Redirect instead of Popup to avoid the "cancelled-popup" error
+    auth.signInWithRedirect(provider);
 }
 
 // 3. Logout
 function logout() {
-    auth.signOut();
+    auth.signOut().then(() => {
+        window.location.reload(); // Refresh to clear states
+    });
 }
 
 // 4. Add Tradition (Saves city name in lowercase for better searching)
