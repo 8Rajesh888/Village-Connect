@@ -8,32 +8,27 @@
 </head>
 <body>
     <div id="userBar" style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-    <span id="welcomeMsg">Welcome, Guest</span>
-    
-    <div>
-        <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-            🔵 Sign In
-        </button>
-
-        <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-            Logout
-        </button>
-    </div>
-</div>
-
-        <div class="add-form" id="addbox">
-            <h3>➕ Add a New Tradition</h3>
-            <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
-            <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
-            <input type="text" id="newDate" placeholder="Date (e.g. Sept 10)">
-            <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
-            <button onclick="addTradition()" style="background-color:#4CAF50;">Submit Tradition</button>
+        <span id="welcomeMsg">Welcome, Guest</span>
+        <div>
+            <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                Sign In
+            </button>
+            <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                Logout
+            </button>
         </div>
+    </div>
 
-        <hr> 
+    <div class="add-form" id="addbox" style="display: none;">
+        <h3>+ Add a New Tradition</h3>
+        <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
+        <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
+        <input type="text" id="newDate" placeholder="Date (e.g. Sept 10)">
+        <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
+        <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">Submit Tradition</button>
+    </div>
 
-
-
+    <hr>
 
     <div class="app-container">
         <h1>🇮🇳 Village Connect</h1>
@@ -45,10 +40,13 @@
         </div>
 
         <div id="resultList"></div>
-    </div>    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    </div>
+
+    <!-- Firebase SDKs (Fixed URLs) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
+    
     <script src="main.js"></script>
 </body>
 </html>

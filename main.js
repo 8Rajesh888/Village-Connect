@@ -1,278 +1,99 @@
-// --- 1. FIREBASE SETUP ---
-// --- GLOBAL VARIABLES ---
-var editId = null; // If this is null, we are Adding. If it has an ID, we are Editing.
-// --- AUTH SETUP ---
-var currentUser = null; // Holds the logged-in user
+// REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIG
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
 
-// 1. LOGIN
-function googleLogin() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-    .then((result) => {
-        console.log("User logged in:", result.user);
-    })
-    .catch((error) => {
-        console.error("Login failed:", error);
-        alert("Login Error: " + error.message);
-    });
-}
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// 2. LOGOUT
-function logout() {
-    firebase.auth().signOut().then(() => {
-        alert("Logged out!");
-        location.reload(); // Refresh the page
-    });
-}
-
-// 3. SECURITY GUARD (Runs automatically) 👮
-// --- 3. AUTH STATE LISTENER (Safe Version) 👮 ---
-// --- 3. AUTH STATE LISTENER (Bulletproof Version) 🛡️ ---
-firebase.auth().onAuthStateChanged((user) => {
-    // We try to find the Green Box using ID or Class
-    let addBox = document.getElementById("addBox") || document.querySelector(".add-form");
-    let welcome = document.getElementById("welcomeMsg");
-    let btnIn = document.getElementById("btnLogin");
-    let btnOut = document.getElementById("btnLogout");
-
+// 1. Authentication Listener
+auth.onAuthStateChanged(user => {
     if (user) {
-        // 🟢 LOGGED IN
-        console.log("User is logged in:", user.email);
-        currentUser = user;
-
-        if (welcome) welcome.innerText = "Hi, " + user.displayName;
-        if (btnIn) btnIn.style.display = "none";
-        if (btnOut) btnOut.style.display = "inline-block";
-        
-        // Safety Check for Green Box
-        if (addBox) {
-            addBox.style.display = "block";
-        } else {
-            console.log("⚠️ Note: 'addBox' not found in HTML, but login worked.");
-        }
-
+        document.getElementById("welcomeMsg").innerText = "Welcome, " + user.displayName;
+        document.getElementById("btnLogin").style.display = "none";
+        document.getElementById("btnLogout").style.display = "block";
+        document.getElementById("addbox").style.display = "block";
     } else {
-        // 🔴 LOGGED OUT
-        console.log("User is logged out.");
-        currentUser = null;
-
-        if (welcome) welcome.innerText = "Guest Mode";
-        if (btnIn) btnIn.style.display = "inline-block";
-        if (btnOut) btnOut.style.display = "none";
-
-        // Safety Check for Green Box
-        if (addBox) {
-            addBox.style.display = "none";
-        }
+        document.getElementById("welcomeMsg").innerText = "Welcome, Guest";
+        document.getElementById("btnLogin").style.display = "block";
+        document.getElementById("btnLogout").style.display = "none";
+        document.getElementById("addbox").style.display = "none";
     }
 });
 
-const firebaseConfig ={
-apiKey:"AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
-authDomain:"village-connect-dabff.firebaseapp.com",
-projectId:"village-connect-dabff", 
-storageBucket:
-"village-connect-dabff.firebasestorage.app",
-messagingSenderId:"885677166072", 
-appId:"1:885677166072:web:49ae174770de8de0a49a0d"
+// 2. Google Login
+function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(error => console.error(error));
 }
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(); // This is your Cloud Database
+// 3. Logout
+function logout() {
+    auth.signOut();
+}
 
-// --- 2. THE SEARCH FUNCTION (Cloud Version) ---
-// --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
-// --- 2. THE SEARCH FUNCTION (Live Real-Time Version) ---
+// 4. Add Tradition (Saves city name in lowercase for better searching)
+function addTradition() {
+    const city = document.getElementById("newCity").value.trim();
+    const title = document.getElementById("newTitle").value;
+    const date = document.getElementById("newDate").value;
+    const desc = document.getElementById("newDesc").value;
+
+    if (!city || !title) return alert("Please fill city and event name.");
+
+    db.collection("traditions").add({
+        city: city.toLowerCase(), // Store as lowercase for easy search
+        displayCity: city,        // Keep original for display
+        title: title,
+        date: date,
+        description: desc,
+        author: auth.currentUser.displayName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        alert("Tradition added!");
+        // Clear fields
+        document.getElementById("newCity").value = "";
+        document.getElementById("newTitle").value = "";
+        document.getElementById("newDate").value = "";
+        document.getElementById("newDesc").value = "";
+    });
+}
+
+// 5. Search Traditions
 function findTraditions() {
-    let input = document.getElementById("cityInput").value.trim().toLowerCase();
-    let resultBox = document.getElementById("resultList");
+    const searchCity = document.getElementById("cityInput").value.trim().toLowerCase();
+    const resultList = document.getElementById("resultList");
+    resultList.innerHTML = "Searching...";
 
-    if(input === "") {
-        resultBox.innerHTML = "<p>Please enter a city name.</p>";
-        return;
-    }
+    db.collection("traditions")
+        .where("city", "==", searchCity)
+        .get()
+        .then(snapshot => {
+            resultList.innerHTML = "";
+            if (snapshot.empty) {
+                resultList.innerHTML = "<p>No traditions found for this location.</p>";
+                return;
+            }
 
-    resultBox.innerHTML = "Listening for updates..."; 
-
-    // 📡 OPEN A LIVE CHANNEL (This line defines 'querySnapshot' 👇)
-    db.collection("traditions").where("city", "==", input)
-    .onSnapshot((querySnapshot) => {
-        resultBox.innerHTML = ""; // Clear old list
-        
-        if (querySnapshot.empty) {
-            resultBox.innerHTML = "<p>No traditions found. Add one!</p>";
-        } else {
-            // Loop through the LIVE results
-            querySnapshot.forEach((doc) => {
-                let t = doc.data(); 
-                let id = doc.id;
-                let likeCount = t.likes || 0; 
-
-                // 1. CHECK LOCAL STORAGE (Did this phone like it?)
-                let userLiked = localStorage.getItem("liked_" + id) === "yes";
-                
-                // 2. SET STYLES (Grey if liked, Red if not)
-                let btnColor = userLiked ? "grey" : "red"; 
-                let btnCursor = userLiked ? "not-allowed" : "pointer";
-
-                resultBox.innerHTML += `
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                resultList.innerHTML += `
                     <div class="card">
-                        <h3>${t.title}</h3>
-                        <p>${t.desc}</p>
-                        <small>📅 ${t.date} | 📍 ${t.city.toUpperCase()}</small>
-                        <br><br>
-                                                <button onclick="likeTradition('${id}')" style="background: white; border: 1px solid ${btnColor}; color: ${btnColor}; cursor: ${btnCursor}; margin-right: 10px;">
-                           ❤️ ${likeCount}
-                        </button>
-
-                        <button onclick="editTradition('${id}')" style="background: orange; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-right: 5px;">
-                            Edit
-                        </button>
-
-                        <button onclick="deleteTradition('${id}')" style="background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer;">
-                            Delete
-                        </button>
-
+                        <h3>${data.title}</h3>
+                        <p>${data.description}</p>
+                        <small>📍 ${data.displayCity} | 📅 ${data.date}</small><br>
+                        <small>Shared by: ${data.author}</small>
                     </div>
                 `;
             });
-        }
-    }, (error) => {
-        console.error("Error getting documents: ", error);
-        resultBox.innerHTML = "Error connecting to server.";
-    });
-}
-
-
-// --- 3. THE ADD FUNCTION (Cloud Version) ---
-// --- 3. THE SMART ADD/UPDATE FUNCTION ---
-function addTradition() {
-    let cityInput = document.getElementById("newCity").value.trim().toLowerCase();
-    let titleInput = document.getElementById("newTitle").value.trim();
-    let dateInput = document.getElementById("newDate").value;
-    let descInput = document.getElementById("newDesc").value;
-
-    if (cityInput === "" || titleInput === "") {
-        alert("Please fill in the details!");
-        return;
-    }
-
-    // 🔀 THE FORK IN THE ROAD
-    if (editId) {
-        // --- OPTION A: UPDATE EXISTING ---
-        db.collection("traditions").doc(editId).update({
-            city: cityInput,
-            title: titleInput,
-            date: dateInput,
-            desc: descInput
-        })
-        .then(() => {
-            alert("Tradition Updated Successfully! ✏️");
-            resetForm(); // Turn button back to Green
-        })
-        .catch((error) => {
-            console.error("Error updating: ", error);
+        }).catch(err => {
+            console.error(err);
+            resultList.innerHTML = "Error loading data.";
         });
-
-    } else {
-        // --- OPTION B: CREATE NEW ---
-        db.collection("traditions").add({
-            city: cityInput,
-            title: titleInput,
-            desc: descInput,
-            date: dateInput,
-            likes: 0,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            alert("Success! Saved to Cloud.");
-            resetForm(); // Clear inputs
-        })
-        .catch((error) => {
-            console.error("Error adding: ", error);
-        });
-    }
-}
-
-// --- HELPER: RESET EVERYTHING ---
-function resetForm() {
-    // 1. Clear text boxes
-    document.getElementById("newCity").value = "";
-    document.getElementById("newTitle").value = "";
-    document.getElementById("newDate").value = "";
-    document.getElementById("newDesc").value = "";
-    
-    // 2. Forget the Edit ID
-    editId = null;
-
-    // 3. Turn Button back to Green (Add Mode)
-    let btn = document.querySelector("button[onclick='addTradition()']");
-    btn.innerText = "Submit Tradition";
-    btn.style.background = "#4CAF50"; // Green
-}
-
-// --- 4. THE DELETE FUNCTION ---
-function deleteTradition(id) {
-    // 1. Confirm with the user
-    if (confirm("Are you sure you want to delete this?") === true) {
-        
-        // 2. Delete from Cloud
-        db.collection("traditions").doc(id).delete()
-        .then(() => {
-            alert("Tradition deleted!");
-
-        })
-        .catch((error) => {
-            console.error("Error removing document: ", error);
-            alert("Error deleting: " + error.message);
-        });
-    }
-}
-// --- 5. THE LIKE FUNCTION ---
-// --- 5. THE SMART LIKE FUNCTION ---
-// --- 5. THE INSTANT-LOCK LIKE FUNCTION ---
-// --- 5. SECURE LIKE FUNCTION ---
-function likeTradition(id) {
-    // 🔒 SECURITY CHECK
-    if (!currentUser) {
-        alert("Please Sign In to like posts! 🔐");
-        return; 
-    }
-
-    // (The rest of your code stays the same)
-    if (localStorage.getItem("liked_" + id) === "yes") {
-        alert("You already liked this! ❤️");
-        return; 
-    }
-
-    // Lock and Update
-    localStorage.setItem("liked_" + id, "yes");
-    db.collection("traditions").doc(id).update({
-        likes: firebase.firestore.FieldValue.increment(1)
-    });
-}
-
-// --- 6. THE EDIT FUNCTION (Prepare the form) ---
-function editTradition(id) {
-    // 1. Scroll to top so user sees the form
-    window.scrollTo(0, 0);
-
-    // 2. Get the data for this specific ID
-    db.collection("traditions").doc(id).get().then((doc) => {
-        let data = doc.data();
-        
-        // 3. Put the data back into the input boxes
-        document.getElementById("newCity").value = data.city;
-        document.getElementById("newTitle").value = data.title;
-        document.getElementById("newDate").value = data.date;
-        document.getElementById("newDesc").value = data.desc;
-
-        // 4. Set the Global Variable so we know we are editing
-        editId = id; 
-
-        // 5. Change the Button Text to show we are in "Update Mode"
-        document.querySelector("button[onclick='addTradition()']").innerText = "Update Tradition";
-        document.querySelector("button[onclick='addTradition()']").style.background = "orange";
-    });
 }

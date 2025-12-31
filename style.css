@@ -12,11 +12,12 @@ body {
     box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
 }
 
-input {
+input, textarea {
     padding: 10px;
     width: 60%;
     border: 1px solid #ddd;
     border-radius: 5px;
+    margin-bottom: 10px;
 }
 
 button {
@@ -26,6 +27,7 @@ button {
     border: none;
     border-radius: 5px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .card {
@@ -39,27 +41,19 @@ button {
 
 h3 { margin: 0 0 5px 0; color: #333; }
 small { color: #666; }
+
 .add-form {
     background: #e8f5e9; /* Light Green background */
     padding: 15px;
-    margin-top: 20px;
+    margin: 20px auto;
     border-radius: 10px;
     border: 1px solid #c8e6c9;
+    max-width: 600px;
 }
 
-textarea {
-    width: 60%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-family: sans-serif;
-}
-
-/* Make inputs have space between them */
 .add-form input, .add-form textarea {
-    margin-bottom: 10px;
-    display: block; /* Puts each input on a new line */
-    width: 90%; /* Fits mobile screen better */
+    display: block;
+    width: 90%;
     margin-left: auto;
-    margin-right: auto;}
+    margin-right: auto;
+}
