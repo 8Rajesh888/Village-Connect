@@ -1,11 +1,16 @@
 // REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIG
+if (typeof firebase === 'undefined') {
+    alert("Firebase failed to load! Check your internet or script URLs in index.html.");
+} else {
+    console.log("Firebase loaded successfully!");
+}
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
+  authDomain: "village-connect-dabff.firebaseapp.com",
+  projectId: "village-connect-dabff",
+  storageBucket: "village-connect-dabff.firebasestorage.app",
+  messagingSenderId: "885677166072",
+  appId: "1:885677166072:web:49ae174770de8d00a49a0d"
 };
 
 firebase.initializeApp(firebaseConfig);
