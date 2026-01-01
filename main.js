@@ -111,3 +111,34 @@ function findTraditions() {
             resultList.innerHTML = "Error loading data.";
         });
 }
+function enterAsGuest() {
+    document.getElementById("welcomeGate").style.display = "none"; // Hide Gate
+    document.getElementById("mainApp").style.display = "block";    // Show App
+}
+
+// 2. Modify Auth Listener (Automatic Entry)
+auth.onAuthStateChanged(user => {
+    let box = document.getElementById("addBox");
+
+    if (user) {
+        // 🟢 LOGGED IN: Auto-open the gate
+        document.getElementById("welcomeGate").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+
+        // Setup UI
+        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
+        document.getElementById("btnLogin").style.display = "none"; // Hide small login btn
+        document.getElementById("btnLogout").style.display = "inline-block";
+        
+        if(box) box.style.display = "block"; 
+    } else {
+        // 🔴 LOGGED OUT: Stay at gate (unless they clicked Guest)
+        // We do nothing here, let them click the buttons.
+        
+        document.getElementById("welcomeMsg").innerText = "Guest Mode";
+        document.getElementById("btnLogin").style.display = "inline-block";
+        document.getElementById("btnLogout").style.display = "none";
+        
+        if(box) box.style.display = "none";
+    }
+});
