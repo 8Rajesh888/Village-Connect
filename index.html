@@ -7,118 +7,59 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div id="welcomeGate" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f4f4; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000;">
-    <h1>🇮🇳 Village Connect</h1>
-    <p>Discover & Share Local Traditions</p>
-    <br>
-    
-    <button onclick="googleLogin()" style="background: white; color: #333; border: 1px solid #ccc; padding: 15px 30px; font-size: 16px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
-        Sign in with Google
-    </button>
-
-    <button onclick="enterAsGuest()" style="background: transparent; border: 2px solid #555; padding: 10px 25px; font-size: 14px; border-radius: 25px; cursor: pointer;">
-        View as Guest
-    </button>
-</div>
-
-<div id="mainApp" style="display: none;">
-    ```
-
-**⚠️ CRITICAL STEP:**
-You must wrap **ALL** your existing HTML (the userBar, the add-form, the search box, the result list) inside that `<div id="mainApp">` tag.
-1.  Paste the code above at the top of `<body>`.
-2.  Scroll to the very bottom (just before `<script>`).
-3.  Add the closing `</div>`.
-
----
-
-### 🛠️ Step 2: Logic to Open the Gate (main.js)
-
-We need a function to hide the gate and show the app.
-
-Open `main.js` and add this logic:
-
-```javascript
-// --- WELCOME GATE LOGIC ---
-
-// 1. If user clicks "Guest"
-function enterAsGuest() {
-    document.getElementById("welcomeGate").style.display = "none"; // Hide Gate
-    document.getElementById("mainApp").style.display = "block";    // Show App
-}
-
-// 2. Modify Auth Listener (Automatic Entry)
-auth.onAuthStateChanged(user => {
-    let box = document.getElementById("addBox");
-
-    if (user) {
-        // 🟢 LOGGED IN: Auto-open the gate
-        document.getElementById("welcomeGate").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-
-        // Setup UI
-        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
-        document.getElementById("btnLogin").style.display = "none"; // Hide small login btn
-        document.getElementById("btnLogout").style.display = "inline-block";
-        
-        if(box) box.style.display = "block"; 
-    } else {
-        // 🔴 LOGGED OUT: Stay at gate (unless they clicked Guest)
-        // We do nothing here, let them click the buttons.
-        
-        document.getElementById("welcomeMsg").innerText = "Guest Mode";
-        document.getElementById("btnLogin").style.display = "inline-block";
-        document.getElementById("btnLogout").style.display = "none";
-        
-        if(box) box.style.display = "none";
-    }
-});
-
-
-    <div id="userBar" style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-        <span id="welcomeMsg">Welcome, Guest</span>
-        <div>
-            <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                Sign In
-            </button>
-            <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                Logout
-            </button>
-        </div>
-    </div>
-
-    <div class="add-form" id="addbox" style="display: none;">
-        <h3>+ Add a New Tradition</h3>
-        <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
-        <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
-        <input type="text" id="newDate" placeholder="Date (e.g. Sept 10)">
-        <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
-        <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">Submit Tradition</button>
-    </div>
-
-    <hr>
-
-    <div class="app-container">
         <h1>🇮🇳 Village Connect</h1>
-        <p>Discover local traditions & events.</p>
+        <p>Discover & Share Local Traditions</p>
+        <br>
+        
+        <button onclick="googleLogin()" style="background: white; color: #333; border: 1px solid #ccc; padding: 15px 30px; font-size: 16px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
+            Sign in with Google
+        </button>
+    
+        <button onclick="enterAsGuest()" style="background: transparent; border: 2px solid #555; padding: 10px 25px; font-size: 14px; border-radius: 25px; cursor: pointer;">
+            View as Guest
+        </button>
+    </div>
 
-        <div class="search-box">
-            <input type="text" id="cityInput" placeholder="Enter Village/City (e.g. Kavutaram)">
-            <button onclick="findTraditions()">Search</button>
+    <div id="mainApp" style="display: none;">
+        
+        <div id="userBar" style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <span id="welcomeMsg">Welcome, Guest</span>
+            <div>
+                <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Sign In</button>
+                <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
+            </div>
         </div>
 
-        <div id="resultList"></div>
-    </div>
-    <div>
-        <!--Tab to edit-->
-    
+        <div class="add-form" id="addBox" style="display: none;">
+            <h3>➕ Add a New Tradition</h3>
+            <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
+            <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
+            <input type="date" id="newDate">
+            <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
+            <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">Submit Tradition</button>
+        </div>
 
-    <!-- Firebase SDKs (Fixed URLs) -->
+        <hr>
+
+        <div class="app-container">
+            <h1>🇮🇳 Village Connect</h1>
+            <p>Discover local traditions & events.</p>
+
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Enter Village/City (e.g. Kavutaram)">
+                <button onclick="findTraditions()">Search</button>
+            </div>
+
+            <div id="resultList"></div>
+        </div>
+    </div> 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
+
     <script src="main.js"></script>
 </body>
 </html>
