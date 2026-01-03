@@ -8,112 +8,272 @@ const firebaseConfig = {
   appId: "1:885677166072:web:49ae174770de8d00a49a0d"
 };
 
-// Initialize
+// ==========================================
+// 1. FIREBASE CONFIGURATION
+// ==========================================
+// ⚠️ PASTE YOUR REAL API KEYS HERE FROM FIREBASE CONSOLE
+
+
+// Initialize Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- 2. CATCH LOGIN ERRORS (The Debugger 🐞) ---
-// This checks if you just came back from Google and if it worked
-auth.getRedirectResult()
-    .then((result) => {
-        if (result.user) {
-            console.log("Success! Logged in as: " + result.user.displayName);
-        }
-    })
-    .catch((error) => {
-        // This alert will tell us exactly why the live site fails!
-        alert("LOGIN ERROR: " + error.code + "\n" + error.message);
-        console.error(error);
-    });
+// Global Variables
+var currentUser = null; // Who is logged in?
+var editId = null;      // Are we editing a post? (null = no)
 
-// --- 3. UI LISTENER (Open/Close Gates) ---
+// ==========================================
+// 2. AUTHENTICATION (Login/Logout)
+// ==========================================
+
+// 🟢 GOOGLE LOGIN (Popup Mode - Best for Localhost)
+function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("Login Success:", result.user);
+        })
+        .catch((error) => {
+            alert("Login Failed: " + error.message);
+        });
+}
+
+// 🔴 LOGOUT
+function logout() {
+    auth.signOut().then(() => {
+        alert("Logged Out!");
+        location.reload(); // Refresh page to clear data
+    });
+}
+
+// 👮 SECURITY GUARD (Listen for Login Changes)
 auth.onAuthStateChanged((user) => {
-    // We use YOUR real IDs here: 'welcomeGate' and 'mainApp'
     const gate = document.getElementById("welcomeGate");
     const app = document.getElementById("mainApp");
     const addBox = document.getElementById("addBox");
-    
+
     if (user) {
-        // 🟢 LOGGED IN
+        // --- USER IS LOGGED IN ---
+        currentUser = user;
+        
+        // 1. Open the App
         if(gate) gate.style.display = "none";
         if(app) app.style.display = "block";
+
+        // 2. Update Header
         document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
-        
-        // Hide small login button, show logout
         document.getElementById("btnLogin").style.display = "none";
         document.getElementById("btnLogout").style.display = "inline-block";
-        
-        // Show the Add Form
+
+        // 3. Show "Add Tradition" Form
         if(addBox) addBox.style.display = "block";
-        
+
     } else {
-        // 🔴 LOGGED OUT
-        // We stay at the gate (or let the user click "View as Guest")
-        // Note: We don't force the gate open here so the "Sign In" button stays visible
-        
+        // --- USER IS GUEST / LOGGED OUT ---
+        currentUser = null;
+
+        // 1. Update Header
         document.getElementById("welcomeMsg").innerText = "Guest Mode";
         document.getElementById("btnLogin").style.display = "inline-block";
         document.getElementById("btnLogout").style.display = "none";
-        
-        // Hide the Add Form
+
+        // 2. Hide "Add Tradition" Form
         if(addBox) addBox.style.display = "none";
     }
 });
 
-// --- 4. GOOGLE LOGIN (Redirect Mode) ---
-// --- 4. GOOGLE LOGIN (Back to Popup Mode) ---
-function googleLogin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
-    // We use POPUP now because we fixed the settings!
-    // It is much better at "Remembering" you on localhost.
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            console.log("Login Success!", result.user);
-            // The listener will automatically open the gate
-        })
-        .catch((error) => {
-            // If the popup is blocked, this will tell us
-            alert("Login Failed: " + error.message);
-            console.error(error);
-        });
-}
-
-// --- 5. LOGOUT ---
-function logout() {
-    auth.signOut().then(() => window.location.reload());
-}
-
-// --- 6. GUEST MODE ---
+// 🏃 GUEST ENTRY BUTTON
 function enterAsGuest() {
     document.getElementById("welcomeGate").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
 }
 
-// --- 7. ADD TRADITION ---
+// ==========================================
+// 3. ADD & EDIT TRADITIONS
+// ==========================================
+
 function addTradition() {
-    if (!auth.currentUser) return alert("Please login first");
-    
+    // Security Check
+    if (!currentUser) return alert("Please sign in to post!");
+
+    // Get Data from HTML
     const city = document.getElementById("newCity").value.trim();
     const title = document.getElementById("newTitle").value.trim();
     const date = document.getElementById("newDate").value;
     const desc = document.getElementById("newDesc").value;
 
-    if (!city || !title) return alert("Please fill in City and Title");
+    // Validation
+    if (!city || !title) return alert("Please fill in City and Event Name.");
 
-    db.collection("traditions").add({
-        city: city.toLowerCase(), // stored lowercase for search
-        displayCity: city,        // stored normal for display
-        title: title,
-        date: date,
-        desc: desc, // Note: your HTML used 'desc', make sure it matches
-        author: auth.currentUser.displayName,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    // ARE WE EDITING OR ADDING?
+    if (editId) {
+        // --- UPDATE EXISTING ---
+        db.collection("traditions").doc(editId).update({
+            city: city.toLowerCase(),
+            displayCity: city,
+            title: title,
+            date: date,
+            desc: desc
+        }).then(() => {
+            alert("Updated Successfully! ✅");
+            resetForm();
+            findTraditions(); // Refresh list
+        });
+    } else {
+        // --- ADD NEW ---
+        db.collection("traditions").add({
+            city: city.toLowerCase(),
+            displayCity: city,
+            title: title,
+            date: date,
+            desc: desc,
+            author: currentUser.displayName,
+            likes: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("Tradition Added! 🎉");
+            resetForm();
+        });
+    }
+}
+
+// Clear the form after submit
+function resetForm() {
+    document.getElementById("newCity").value = "";
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newDate").value = "";
+    document.getElementById("newDesc").value = "";
+    
+    editId = null; // Stop editing mode
+    let btn = document.querySelector("#addBox button");
+    btn.innerText = "Submit Tradition";
+    btn.style.background = "#4CAF50"; // Green
+}
+
+// ==========================================
+// 4. SEARCH & DISPLAY
+// ==========================================
+
+function findTraditions() {
+    const searchCity = document.getElementById("cityInput").value.trim().toLowerCase();
+    const resultList = document.getElementById("resultList");
+    
+    if (!searchCity) return alert("Please enter a city name.");
+
+    resultList.innerHTML = "<p>Searching...</p>";
+
+    db.collection("traditions")
+      .where("city", "==", searchCity)
+      .get()
+      .then((querySnapshot) => {
+          resultList.innerHTML = ""; // Clear "Searching..."
+
+          if (querySnapshot.empty) {
+              resultList.innerHTML = "<p>No traditions found here yet.</p>";
+              return;
+          }
+
+          // Loop through results
+          querySnapshot.forEach((doc) => {
+              const t = doc.data();
+              const id = doc.id;
+              
+              // Check if user already liked this
+              let isLiked = localStorage.getItem("liked_" + id) === "yes";
+              let heartColor = isLiked ? "grey" : "red";
+
+              // Create HTML Card
+              resultList.innerHTML += `
+                  <div class="card">
+                      <h3>${t.title}</h3>
+                      <p>${t.desc}</p>
+                      <small>📅 ${t.date} | 📍 ${t.displayCity || t.city}</small>
+                      <br><br>
+                      
+                      <button onclick="likeTradition('${id}')" style="background:white; border:1px solid ${heartColor}; color:${heartColor}; margin-right:5px;">
+                          ❤️ ${t.likes || 0}
+                      </button>
+
+                      <button onclick="editTradition('${id}')" style="background:orange; color:white; border:none; padding:5px 10px; margin-right:5px;">
+                          Edit
+                      </button>
+
+                      <button onclick="deleteTradition('${id}')" style="background:red; color:white; border:none; padding:5px 10px;">
+                          Delete
+                      </button>
+                      
+                      <br>
+                      <small style="color:#888; font-size:10px;">By: ${t.author || "Guest"}</small>
+                  </div>
+              `;
+          });
+      })
+      .catch(err => {
+          console.error("Search Error:", err);
+          resultList.innerHTML = "Error loading data.";
+      });
+}
+
+// ==========================================
+// 5. ACTION BUTTONS (Like, Edit, Delete)
+// ==========================================
+
+// ❤️ LIKE FUNCTION
+function likeTradition(id) {
+    if (!currentUser) return alert("Please sign in to like! 🔒");
+    
+    if (localStorage.getItem("liked_" + id) === "yes") {
+        return alert("You already liked this! ❤️");
+    }
+
+    // Save to LocalStorage so they can't like again
+    localStorage.setItem("liked_" + id, "yes");
+
+    // Update Database
+    db.collection("traditions").doc(id).update({
+        likes: firebase.firestore.FieldValue.increment(1)
     }).then(() => {
-        alert("Shared successfully!");
-        location.reload();
-    }).catch(err => alert("Save Error: " + err.message));
+        findTraditions(); // Refresh to show new number
+    });
+}
+
+// ✏️ EDIT FUNCTION
+function editTradition(id) {
+    if (!currentUser) return alert("Please sign in to edit!");
+
+    // Scroll to top
+    window.scrollTo(0, 0);
+
+    // Get data from DB
+    db.collection("traditions").doc(id).get().then((doc) => {
+        let data = doc.data();
+        
+        // Fill the form
+        document.getElementById("newCity").value = data.displayCity || data.city;
+        document.getElementById("newTitle").value = data.title;
+        document.getElementById("newDate").value = data.date;
+        document.getElementById("newDesc").value = data.desc;
+
+        // Turn on "Edit Mode"
+        editId = id;
+        let btn = document.querySelector("#addBox button");
+        btn.innerText = "Update Tradition";
+        btn.style.background = "orange";
+    });
+}
+
+// 🗑️ DELETE FUNCTION
+function deleteTradition(id) {
+    if (!currentUser) return alert("Please sign in to delete!");
+
+    if (confirm("Are you sure you want to delete this?")) {
+        db.collection("traditions").doc(id).delete()
+            .then(() => {
+                alert("Deleted.");
+                findTraditions(); // Refresh list
+            });
+    }
 }
