@@ -13,6 +13,263 @@ const firebaseConfig = {
 // ==========================================
 // ⚠️ PASTE YOUR REAL API KEYS HERE FROM FIREBASE CONSOLE
 
+// ==========================================
+// 1. FIREBASE CONFIGURATION
+// ==========================================
+// (Your real keys are already here)
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Global Variables
+var currentUser = null;
+var editId = null;
+
+// ==========================================
+// 2. AUTHENTICATION (Clean & Silent)
+// ==========================================
+
+// 🟢 GOOGLE LOGIN (Popup Mode)
+function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("Login Success");
+            // No alert needed, the UI will update automatically
+        })
+        .catch((error) => {
+            console.error(error);
+            alert("Login Failed: " + error.message);
+        });
+}
+
+// 🔴 LOGOUT
+function logout() {
+    auth.signOut().then(() => {
+        location.reload(); // Just reload the page cleanly
+    });
+}
+
+// 👮 UI MANAGER (Handles showing/hiding screens)
+auth.onAuthStateChanged((user) => {
+    const gate = document.getElementById("welcomeGate");
+    const app = document.getElementById("mainApp");
+    const addBox = document.getElementById("addBox");
+
+    if (user) {
+        // --- USER IS LOGGED IN ---
+        currentUser = user;
+        
+        if(gate) gate.style.display = "none";
+        if(app) app.style.display = "block";
+
+        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
+        document.getElementById("btnLogin").style.display = "none";
+        document.getElementById("btnLogout").style.display = "inline-block";
+
+        if(addBox) addBox.style.display = "block";
+
+    } else {
+        // --- USER IS GUEST ---
+        currentUser = null;
+
+        document.getElementById("welcomeMsg").innerText = "Guest Mode";
+        document.getElementById("btnLogin").style.display = "inline-block";
+        document.getElementById("btnLogout").style.display = "none";
+
+        if(addBox) addBox.style.display = "none";
+    }
+});
+
+// 🏃 GUEST BUTTON
+function enterAsGuest() {
+    document.getElementById("welcomeGate").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+}
+
+// ==========================================
+// 3. ADD & EDIT TRADITIONS (With Ownership)
+// ==========================================
+
+function addTradition() {
+    if (!currentUser) return alert("Please sign in to post!");
+
+    const city = document.getElementById("newCity").value.trim();
+    const title = document.getElementById("newTitle").value.trim();
+    const date = document.getElementById("newDate").value;
+    const desc = document.getElementById("newDesc").value;
+
+    if (!city || !title) return alert("Please fill in City and Event Name.");
+
+    if (editId) {
+        // --- UPDATE EXISTING ---
+        db.collection("traditions").doc(editId).update({
+            city: city.toLowerCase(),
+            displayCity: city,
+            title: title,
+            date: date,
+            desc: desc
+        }).then(() => {
+            alert("Updated successfully! ✅");
+            resetForm();
+            findTraditions(); // Refresh the list to see changes
+        });
+    } else {
+        // --- ADD NEW (Saves Your ID) ---
+        db.collection("traditions").add({
+            city: city.toLowerCase(),
+            displayCity: city,
+            title: title,
+            date: date,
+            desc: desc,
+            author: currentUser.displayName,
+            uid: currentUser.uid, // 🛡️ SAVES OWNERSHIP
+            likes: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("Tradition shared successfully! 🎉");
+            resetForm();
+        });
+    }
+}
+
+function resetForm() {
+    document.getElementById("newCity").value = "";
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newDate").value = "";
+    document.getElementById("newDesc").value = "";
+    
+    editId = null;
+    let btn = document.querySelector("#addBox button");
+    btn.innerText = "Submit Tradition";
+    btn.style.background = "#4CAF50";
+}
+
+// ==========================================
+// 4. SEARCH (Smart Buttons)
+// ==========================================
+
+function findTraditions() {
+    const searchCity = document.getElementById("cityInput").value.trim().toLowerCase();
+    const resultList = document.getElementById("resultList");
+    
+    if (!searchCity) return alert("Please enter a city name.");
+
+    resultList.innerHTML = "<p>Searching...</p>";
+
+    db.collection("traditions")
+      .where("city", "==", searchCity)
+      .get()
+      .then((querySnapshot) => {
+          resultList.innerHTML = ""; 
+
+          if (querySnapshot.empty) {
+              resultList.innerHTML = "<p>No traditions found here yet.</p>";
+              return;
+          }
+
+          querySnapshot.forEach((doc) => {
+              const t = doc.data();
+              const id = doc.id;
+              
+              // 1. CHECK OWNERSHIP 🛡️
+              // Only show Edit/Delete if the current user created this post
+              const isOwner = currentUser && t.uid === currentUser.uid;
+
+              let actionButtons = "";
+              if (isOwner) {
+                  actionButtons = `
+                      <button onclick="editTradition('${id}')" style="background:orange; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer; border-radius:3px;">
+                          Edit
+                      </button>
+                      <button onclick="deleteTradition('${id}')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">
+                          Delete
+                      </button>
+                  `;
+              }
+
+              // 2. CHECK LIKES
+              let isLiked = localStorage.getItem("liked_" + id) === "yes";
+              let heartColor = isLiked ? "grey" : "red";
+
+              // 3. RENDER CARD
+              resultList.innerHTML += `
+                  <div class="card">
+                      <h3>${t.title}</h3>
+                      <p>${t.desc}</p>
+                      <small>📅 ${t.date} | 📍 ${t.displayCity || t.city}</small>
+                      <br><br>
+                      
+                      <button onclick="likeTradition('${id}')" style="background:white; border:1px solid ${heartColor}; color:${heartColor}; margin-right:5px; cursor:pointer; border-radius:3px;">
+                          ❤️ ${t.likes || 0}
+                      </button>
+
+                      ${actionButtons}
+                      
+                      <br>
+                      <small style="color:#888; font-size:10px;">By: ${t.author || "Guest"}</small>
+                  </div>
+              `;
+          });
+      })
+      .catch(err => {
+          console.error("Search Error:", err);
+          resultList.innerHTML = "Error loading data.";
+      });
+}
+
+// ==========================================
+// 5. ACTIONS (Like, Edit, Delete)
+// ==========================================
+
+function likeTradition(id) {
+    if (!currentUser) return alert("Please sign in to like! 🔒");
+    
+    if (localStorage.getItem("liked_" + id) === "yes") {
+        return alert("You already liked this! ❤️");
+    }
+
+    localStorage.setItem("liked_" + id, "yes");
+
+    db.collection("traditions").doc(id).update({
+        likes: firebase.firestore.FieldValue.increment(1)
+    }).then(() => {
+        // Optional: Refresh search to update count immediately
+        // findTraditions(); 
+        // Or just let them see it next time they search
+        let btn = document.activeElement;
+        if(btn) btn.style.color = "grey"; // Instant visual feedback
+    });
+}
+
+function editTradition(id) {
+    window.scrollTo(0, 0); // Scroll to top
+    db.collection("traditions").doc(id).get().then((doc) => {
+        let data = doc.data();
+        document.getElementById("newCity").value = data.displayCity || data.city;
+        document.getElementById("newTitle").value = data.title;
+        document.getElementById("newDate").value = data.date;
+        document.getElementById("newDesc").value = data.desc;
+
+        editId = id;
+        let btn = document.querySelector("#addBox button");
+        btn.innerText = "Update Tradition";
+        btn.style.background = "orange";
+    });
+}
+
+function deleteTradition(id) {
+    if (confirm("Are you sure you want to delete this tradition?")) {
+        db.collection("traditions").doc(id).delete()
+            .then(() => {
+                findTraditions(); // Refresh list to remove the card
+            });
+    }
+}
 
 // Initialize Firebase
 if (!firebase.apps.length) {
