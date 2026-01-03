@@ -1,11 +1,11 @@
 // --- 1. FIREBASE CONFIG (Your Real Keys 🔑) ---
 const firebaseConfig = {
-    apiKey: "AIzaSyDwnoGf4Rlelk5-5mRGemwSFjkJbmP2P", 
-    authDomain: "village-connect-dabff.firebaseapp.com",
-    projectId: "village-connect-dabff",
-    storageBucket: "village-connect-dabff.firebasestorage.app",
-    messagingSenderId: "855677106072",
-    appId: "1:855677106072:web:cba1747761eb868a855d6"
+  apiKey: "AIzaSyBxnxa5ffRlelk3-SxBGemmnGFjkJ8mP2U",
+  authDomain: "village-connect-dabff.firebaseapp.com",
+  projectId: "village-connect-dabff",
+  storageBucket: "village-connect-dabff.firebasestorage.app",
+  messagingSenderId: "885677166072",
+  appId: "1:885677166072:web:49ae174770de8d00a49a0d"
 };
 
 // Initialize
