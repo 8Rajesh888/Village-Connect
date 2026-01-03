@@ -123,14 +123,15 @@ function addTradition() {
             findTraditions(); // Refresh list
         });
     } else {
-        // --- ADD NEW ---
+        // --- ADD NEW (Secured 🔒) ---
         db.collection("traditions").add({
             city: city.toLowerCase(),
             displayCity: city,
             title: title,
             date: date,
             desc: desc,
-            author: currentUser.displayName,
+            author: currentUser.displayName, // Visible Name
+            uid: currentUser.uid,            // 🚨 SECRET ID (This proves ownership!)
             likes: 0,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
@@ -138,6 +139,7 @@ function addTradition() {
             resetForm();
         });
     }
+
 }
 
 // Clear the form after submit
@@ -169,23 +171,39 @@ function findTraditions() {
       .where("city", "==", searchCity)
       .get()
       .then((querySnapshot) => {
-          resultList.innerHTML = ""; // Clear "Searching..."
+          resultList.innerHTML = ""; 
 
           if (querySnapshot.empty) {
               resultList.innerHTML = "<p>No traditions found here yet.</p>";
               return;
           }
 
-          // Loop through results
           querySnapshot.forEach((doc) => {
               const t = doc.data();
               const id = doc.id;
               
-              // Check if user already liked this
+              // 1. Check Ownership 🛡️
+              // (Is the logged-in user the same person who created this?)
+              const isOwner = currentUser && t.uid === currentUser.uid;
+
+              // 2. Prepare Buttons (Only show Edit/Delete if Owner)
+              let actionButtons = "";
+              if (isOwner) {
+                  actionButtons = `
+                      <button onclick="editTradition('${id}')" style="background:orange; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer;">
+                          Edit
+                      </button>
+                      <button onclick="deleteTradition('${id}')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                          Delete
+                      </button>
+                  `;
+              }
+
+              // 3. Check Likes
               let isLiked = localStorage.getItem("liked_" + id) === "yes";
               let heartColor = isLiked ? "grey" : "red";
 
-              // Create HTML Card
+              // 4. Create HTML
               resultList.innerHTML += `
                   <div class="card">
                       <h3>${t.title}</h3>
@@ -193,17 +211,11 @@ function findTraditions() {
                       <small>📅 ${t.date} | 📍 ${t.displayCity || t.city}</small>
                       <br><br>
                       
-                      <button onclick="likeTradition('${id}')" style="background:white; border:1px solid ${heartColor}; color:${heartColor}; margin-right:5px;">
+                      <button onclick="likeTradition('${id}')" style="background:white; border:1px solid ${heartColor}; color:${heartColor}; margin-right:5px; cursor:pointer;">
                           ❤️ ${t.likes || 0}
                       </button>
 
-                      <button onclick="editTradition('${id}')" style="background:orange; color:white; border:none; padding:5px 10px; margin-right:5px;">
-                          Edit
-                      </button>
-
-                      <button onclick="deleteTradition('${id}')" style="background:red; color:white; border:none; padding:5px 10px;">
-                          Delete
-                      </button>
+                      ${actionButtons}
                       
                       <br>
                       <small style="color:#888; font-size:10px;">By: ${t.author || "Guest"}</small>
