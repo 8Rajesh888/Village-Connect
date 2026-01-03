@@ -158,7 +158,6 @@ function resetForm() {
 // ==========================================
 // 4. SEARCH & DISPLAY
 // ==========================================
-
 function findTraditions() {
     const searchCity = document.getElementById("cityInput").value.trim().toLowerCase();
     const resultList = document.getElementById("resultList");
@@ -228,6 +227,7 @@ function findTraditions() {
           resultList.innerHTML = "Error loading data.";
       });
 }
+
 
 // ==========================================
 // 5. ACTION BUTTONS (Like, Edit, Delete)
