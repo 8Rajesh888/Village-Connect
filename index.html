@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -39,14 +39,17 @@
             <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
             <input type="date" id="newDate">
             <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
-            <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">Submit Tradition</button>
+            
+            <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">
+                Submit Tradition
+            </button>
         </div>
 
         <hr>
 
         <div class="app-container">
-            <h1>🇮🇳 Village Connect</h1>
-            <p>Discover local traditions & events.</p>
+            <h1>🇮🇳 Explore Traditions</h1>
+            <p>Search for a village or city to see events.</p>
 
             <div class="search-box">
                 <input type="text" id="cityInput" placeholder="Enter Village/City (e.g. Kavutaram)">
@@ -55,11 +58,13 @@
 
             <div id="resultList"></div>
         </div>
+        
     </div> 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script src="main.js"></script>
+    
 </body>
 </html>
