@@ -64,16 +64,22 @@ auth.onAuthStateChanged((user) => {
 });
 
 // --- 4. GOOGLE LOGIN (Redirect Mode) ---
+// --- 4. GOOGLE LOGIN (Back to Popup Mode) ---
 function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
     
-    // This helps the phone remember you are logged in
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            // We use REDIRECT because popups fail on phones
-            return auth.signInWithRedirect(provider);
+    // We use POPUP now because we fixed the settings!
+    // It is much better at "Remembering" you on localhost.
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("Login Success!", result.user);
+            // The listener will automatically open the gate
         })
-        .catch(err => alert("Persistence Error: " + err.message));
+        .catch((error) => {
+            // If the popup is blocked, this will tell us
+            alert("Login Failed: " + error.message);
+            console.error(error);
+        });
 }
 
 // --- 5. LOGOUT ---
