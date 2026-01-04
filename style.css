@@ -29,6 +29,13 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
+/* Add this to your existing CSS */
+.card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
 
 .card {
     background: #fff3e0;

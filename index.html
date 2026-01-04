@@ -1,4 +1,4 @@
-        <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -40,6 +40,9 @@
             <input type="date" id="newDate">
             <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
             
+            <label style="display:block; text-align:left; width:90%; margin:10px auto; color:#555;">📸 Add Photo (Max 1MB):</label>
+            <input type="file" id="newPhoto" accept="image/*">
+
             <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">
                 Submit Tradition
             </button>
@@ -60,10 +63,10 @@
         </div>
         
     </div> 
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
     <script src="main.js"></script>
     
 </body>
