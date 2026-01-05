@@ -1,73 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Village Connect</title>
+    <title>Village Connect | India's Heritage</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-    <div id="welcomeGate" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f4f4; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000;">
-        <h1>🇮🇳 Village Connect</h1>
-        <p>Discover & Share Local Traditions</p>
-        <br>
-        
-        <button onclick="googleLogin()" style="background: white; color: #333; border: 1px solid #ccc; padding: 15px 30px; font-size: 16px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
-            Sign in with Google
-        </button>
-    
-        <button onclick="enterAsGuest()" style="background: transparent; border: 2px solid #555; padding: 10px 25px; font-size: 14px; border-radius: 25px; cursor: pointer;">
-            View as Guest
-        </button>
-    </div>
-
-    <div id="mainApp" style="display: none;">
-        
-        <div id="userBar" style="background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <span id="welcomeMsg">Welcome, Guest</span>
-            <div>
-                <button id="btnLogin" onclick="googleLogin()" style="background: white; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Sign In</button>
-                <button id="btnLogout" onclick="logout()" style="display: none; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
-            </div>
+    <nav>
+        <div class="logo">🇮🇳 Village Connect</div>
+        <div class="nav-links">
+            <button onclick="showSection('home')">Home</button>
+            <button onclick="showSection('feed')">Explore</button>
+            <button onclick="showSection('add')">Share</button>
+            <button id="navLoginBtn" onclick="googleLogin()">Login</button>
         </div>
+    </nav>
 
-        <div class="add-form" id="addBox" style="display: none;">
-            <h3>➕ Add a New Tradition</h3>
-            <input type="text" id="newCity" placeholder="City (e.g. Mumbai)">
-            <input type="text" id="newTitle" placeholder="Event Name (e.g. Ganesh Visarjan)">
-            <input type="date" id="newDate">
-            <textarea id="newDesc" placeholder="Description (How do you celebrate?)"></textarea>
-            
-            <label style="display:block; text-align:left; width:90%; margin:10px auto; color:#555;">📸 Add Photo (Max 1MB):</label>
-            <input type="file" id="newPhoto" accept="image/*">
-
-            <button onclick="addTradition()" style="background-color: #4CAF50; margin-top: 10px;">
-                Submit Tradition
-            </button>
+    <header id="homeSection" class="active-section">
+        <div class="hero-content">
+            <h1>Preserve Your <br><span>Village Roots</span></h1>
+            <p>Don't let your local traditions fade away. Record them forever on the blockchain of culture.</p>
+            <button class="cta-btn" onclick="showSection('feed')">Start Exploring 🚀</button>
         </div>
+    </header>
 
-        <hr>
-
+    <section id="feedSection" style="display: none;">
         <div class="app-container">
-            <h1>🇮🇳 Explore Traditions</h1>
-            <p>Search for a village or city to see events.</p>
-
+            <h2>🌍 Explore Traditions</h2>
             <div class="search-box">
-                <input type="text" id="cityInput" placeholder="Enter Village/City (e.g. Kavutaram)">
-                <button onclick="findTraditions()">Search</button>
+                <input type="text" id="cityInput" placeholder="Search City (e.g. Kavutaram)">
+                <button onclick="findTraditions()"><span class="material-icons">search</span></button>
             </div>
-
             <div id="resultList"></div>
         </div>
-        
-    </div> 
+    </section>
+
+    <section id="addSection" style="display: none;">
+        <div class="app-container">
+            <h2>➕ Share a Memory</h2>
+            <div class="add-form" id="addBox">
+                <input type="text" id="newCity" placeholder="City Name">
+                <input type="text" id="newTitle" placeholder="Tradition Title">
+                <input type="date" id="newDate">
+                <textarea id="newDesc" placeholder="Describe the tradition..."></textarea>
+                
+                <label>📸 Upload Photo (Max 1MB)</label>
+                <input type="file" id="newPhoto" accept="image/*">
+                
+                <button onclick="addTradition()" class="cta-btn">Post Tradition</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Built with 💙 by Rajesh | Future ThoughtWorker</p>
+    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="main.js"></script>
     
+    <script>
+        // SIMPLE NAVIGATION LOGIC
+        function showSection(sectionId) {
+            // Hide all sections
+            document.getElementById('homeSection').style.display = 'none';
+            document.getElementById('feedSection').style.display = 'none';
+            document.getElementById('addSection').style.display = 'none';
+            
+            // Show the chosen one
+            document.getElementById(sectionId + 'Section').style.display = 'flex';
+        }
+    </script>
 </body>
 </html>
