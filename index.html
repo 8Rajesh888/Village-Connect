@@ -22,17 +22,31 @@
     <header id="homeSection" class="active-section">
         <div class="hero-content">
             <h1>Preserve Your <br><span>Village Roots</span></h1>
-            <p>Don't let your local traditions fade away. Record them forever on the blockchain of culture.</p>
+            
+            <p>Join India's first digital heritage archive. Record local traditions, festivals, and stories on the blockchain of culture.</p>
+            
             <button class="cta-btn" onclick="showSection('feed')">Start Exploring 🚀</button>
+
+            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; opacity: 0.9; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
+                    🇮🇳 500+ Villages
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
+                    📸 10k+ Stories
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
+                    🛡️ Heritage Verified
+                </span>
+            </div>
         </div>
     </header>
 
     <section id="feedSection" style="display: none;">
         <div class="app-container">
             <h2>🌍 Explore Traditions</h2>
-            <div class="search-box">
+            <div class="search-box" style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="cityInput" placeholder="Search City (e.g. Kavutaram)">
-                <button onclick="findTraditions()"><span class="material-icons">search</span></button>
+                <button onclick="findTraditions()" style="background: #ffcc00; border: none; padding: 0 15px; border-radius: 10px; cursor: pointer;"><span class="material-icons">search</span></button>
             </div>
             <div id="resultList"></div>
         </div>
@@ -47,10 +61,10 @@
                 <input type="date" id="newDate">
                 <textarea id="newDesc" placeholder="Describe the tradition..."></textarea>
                 
-                <label>📸 Upload Photo (Max 1MB)</label>
+                <label style="display: block; margin-top: 10px; font-weight: bold;">📸 Upload Photo (Max 1MB)</label>
                 <input type="file" id="newPhoto" accept="image/*">
                 
-                <button onclick="addTradition()" class="cta-btn">Post Tradition</button>
+                <button onclick="addTradition()" class="cta-btn" style="width: 100%; margin-top: 15px;">Post Tradition</button>
             </div>
         </div>
     </section>
@@ -65,15 +79,24 @@
     <script src="main.js"></script>
     
     <script>
-        // SIMPLE NAVIGATION LOGIC
+        // NAVIGATION LOGIC
         function showSection(sectionId) {
-            // Hide all sections
             document.getElementById('homeSection').style.display = 'none';
             document.getElementById('feedSection').style.display = 'none';
             document.getElementById('addSection').style.display = 'none';
             
-            // Show the chosen one
-            document.getElementById(sectionId + 'Section').style.display = 'flex';
+            // Show selected
+            const active = document.getElementById(sectionId + 'Section');
+            active.style.display = (sectionId === 'home') ? 'flex' : 'flex'; 
+            
+            // Fix layout style for sections vs header
+            if(sectionId === 'home') {
+                active.style.display = 'flex';
+                active.style.flexDirection = 'column';
+            } else {
+                active.style.display = 'flex';
+                active.style.justifyContent = 'center';
+            }
         }
     </script>
 </body>
