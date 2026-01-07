@@ -1,207 +1,164 @@
-/* 1. GLOBAL RESET & FONTS */
+/* 1. GLOBAL RESET & FONT */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 :root {
-    --primary: #ffcc00;
-    --dark: #1e3c72;
-    --light: #2a5298;
-    --glass: rgba(255, 255, 255, 0.15);
+    --primary: #ffcc00;   /* ThoughtWorks Yellow */
+    --dark: #1e3c72;      /* Deep Blue */
+    --light: #2a5298;     /* Lighter Blue */
+    --glass: rgba(255, 255, 255, 0.95);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
 body {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
+    color: #333;
     min-height: 100vh;
-    overflow-x: hidden;
-    padding-bottom: 80px; /* Space for mobile nav if needed */
+    padding-bottom: 50px;
 }
 
-/* 2. NAVIGATION (Responsive) */
+/* 2. NAVIGATION (Sticky & Glass) */
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 5%;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3); /* Dark transparent nav */
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .logo { 
-    font-size: 1.5rem; 
+    color: white; 
+    font-size: 1.4rem; 
     font-weight: 700; 
-    letter-spacing: 1px;
 }
 
-.nav-links {
-    display: flex;
-    gap: 15px;
-}
+.nav-links { display: flex; gap: 15px; }
 
 .nav-links button {
-    background: transparent;
+    background: none;
     border: none;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
     cursor: pointer;
     font-weight: 500;
-    transition: 0.3s;
 }
-
-.nav-links button:hover { color: var(--primary); transform: translateY(-2px); }
+.nav-links button:hover { color: var(--primary); }
 
 #navLoginBtn {
     background: white;
     color: var(--dark);
-    padding: 8px 20px;
+    padding: 5px 15px;
     border-radius: 20px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
-/* 3. HERO SECTION (Home) */
+/* 3. HERO SECTION (Centered & Big) */
 #homeSection {
-    min-height: 85vh;
+    min-height: 80vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    color: white;
     padding: 20px;
-    animation: fadeIn 1s ease-out;
 }
 
 .hero-content h1 {
-    font-size: 3.5rem;
-    line-height: 1.1;
-    margin-bottom: 20px;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    font-size: 3rem;
+    line-height: 1.2;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .hero-content span { color: var(--primary); }
 
 .hero-content p {
     font-size: 1.1rem;
-    max-width: 600px;
-    margin-bottom: 30px;
     opacity: 0.9;
-    line-height: 1.6;
+    max-width: 600px;
+    margin-bottom: 25px;
 }
 
 .cta-btn {
     background: var(--primary);
     color: var(--dark);
-    padding: 15px 40px;
+    padding: 15px 35px;
     font-size: 1.1rem;
     font-weight: 700;
     border: none;
     border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(255, 204, 0, 0.3);
-    transition: all 0.3s ease;
+    transition: transform 0.2s;
 }
+.cta-btn:hover { transform: scale(1.05); }
 
-.cta-btn:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(255, 204, 0, 0.5);
-}
-
-/* 4. APP SECTIONS (Feed & Add) */
+/* 4. APP SECTIONS (White Cards) */
 section {
-    padding: 80px 20px;
+    padding: 40px 20px;
     display: flex;
     justify-content: center;
 }
 
 .app-container {
-    background: white;
-    color: #333;
+    background: var(--glass);
     width: 100%;
     max-width: 600px;
-    padding: 30px;
-    border-radius: 25px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* Inputs */
-input, textarea, select {
+input, textarea {
     width: 100%;
-    padding: 15px;
+    padding: 12px;
     margin: 10px 0;
-    border: 2px solid #eee;
-    border-radius: 12px;
-    background: #f8f9fa;
-    font-size: 1rem;
-    transition: 0.3s;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #f9f9f9;
 }
+input:focus { border-color: var(--light); outline: none; }
 
-input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--light);
-    background: white;
-}
-
-/* 5. CARDS (The Posts) */
+/* 5. CARDS (Traditions) */
 .card {
     background: white;
+    padding: 15px;
     border-radius: 15px;
-    padding: 20px;
-    margin-top: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    transition: transform 0.3s;
-    border: 1px solid #f0f0f0;
+    margin-top: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
+.card img { width: 100%; border-radius: 10px; margin: 10px 0; }
 
-.card:hover { transform: translateY(-5px); }
-
-.card h3 { color: var(--dark); margin-bottom: 5px; }
-.card img { 
-    width: 100%; 
-    height: 200px; 
-    object-fit: cover; 
-    border-radius: 10px; 
-    margin: 15px 0; 
-}
-
-/* 6. MOBILE RESPONSIVENESS (The Fix You Wanted!) */
+/* 🚨 MOBILE RESPONSIVE FIX (The Magic Part) */
 @media (max-width: 768px) {
-    
-    /* Nav Stack */
     nav {
-        flex-direction: column;
+        flex-direction: column; /* Stack Logo & Buttons */
+        gap: 10px;
         padding: 15px;
     }
-
-    .logo { margin-bottom: 15px; }
-
+    
+    .logo { margin-bottom: 5px; }
+    
     .nav-links {
         width: 100%;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: wrap; /* Allow buttons to wrap if screen is tiny */
     }
 
-    .nav-links button {
-        font-size: 0.9rem;
-        padding: 5px 10px;
-        background: rgba(255,255,255,0.1); /* pill shape background */
-        border-radius: 15px;
-    }
-
-    /* Hero Fixes */
-    .hero-content h1 { font-size: 2.2rem; }
-    .hero-content p { font-size: 0.95rem; }
+    .hero-content h1 { font-size: 2.2rem; } /* Smaller text for phone */
+    .hero-content p { font-size: 1rem; }
     
-    /* Section Fixes */
-    section { padding: 40px 15px; }
     .app-container { padding: 20px; }
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
 }
