@@ -172,3 +172,12 @@ input:focus { border-color: var(--light); outline: none; }
     
     .app-container { padding: 20px; }
 }
+/* FOOTER FIX */
+footer {
+    text-align: center;       /* Centers the text */
+    padding: 20px;            /* Adds breathing room from the bottom */
+    width: 100%;              /* Ensures it spans full width */
+    margin-top: auto;         /* Pushes it to bottom if content is short */
+    color: rgba(255, 255, 255, 0.8); /* Makes it slightly transparent white */
+    font-size: 0.9rem;
+}
