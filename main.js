@@ -278,3 +278,79 @@ function deleteTradition(id) {
         });
     }
 }
+/* =========================================
+   MOBILE "MINI-BRAIN" SEARCH ENGINE 🧠
+   (Runs 100% in your browser, no server needed)
+   ========================================= */
+
+// 1. The "Database" (Simulated Memory)
+const villageData = [
+    { 
+        id: 1, 
+        city: "Kavutaram", 
+        text: "The heavy rain festival happens in August. Farmers pray for good harvest.", 
+        tags: ["festival", "rain", "prayer"] 
+    },
+    { 
+        id: 2, 
+        city: "Kavutaram", 
+        text: "The big Banyan Tree was planted in 1950. It is a meeting spot for elders.", 
+        tags: ["nature", "tree", "history", "1950"] 
+    },
+    { 
+        id: 3, 
+        city: "Vijayawada", 
+        text: "Famous for spicy mango pickle made in summer. It uses a secret grandmother recipe.", 
+        tags: ["food", "pickle", "spicy"] 
+    },
+    { 
+        id: 4, 
+        city: "Coastal AP", 
+        text: "Fishermen use hand-woven nets. This tradition is fading away.", 
+        tags: ["fishing", "ocean", "craft"] 
+    }
+];
+
+// 2. The Search Function (The Logic)
+function findTraditions() {
+    const query = document.getElementById('cityInput').value.toLowerCase();
+    const resultList = document.getElementById('resultList');
+    
+    // Clear previous results
+    resultList.innerHTML = "";
+    resultList.innerHTML = `<p style="color:#666; font-style:italic;">🔍 Searching for "${query}"...</p>`;
+
+    // ARTIFICIAL DELAY (To make it feel like AI is thinking)
+    setTimeout(() => {
+        const matches = villageData.filter(item => {
+            // Check City OR Text content OR Tags
+            return item.city.toLowerCase().includes(query) || 
+                   item.text.toLowerCase().includes(query) ||
+                   item.tags.some(tag => tag.includes(query));
+        });
+
+        displayResults(matches);
+    }, 800); 
+}
+
+// 3. The Display (The UI)
+function displayResults(matches) {
+    const resultList = document.getElementById('resultList');
+    resultList.innerHTML = ""; // Clear "Searching..."
+
+    if (matches.length === 0) {
+        resultList.innerHTML = `<div class="card"><p>❌ No traditions found. Try "food" or "tree".</p></div>`;
+        return;
+    }
+
+    matches.forEach(item => {
+        const card = `
+            <div class="card" style="border-left: 4px solid #ffcc00; animation: slideUp 0.3s ease;">
+                <h3>📍 ${item.city}</h3>
+                <p>${item.text}</p>
+                <small style="color:#2a5298; font-weight:bold;">#${item.tags.join(" #")}</small>
+            </div>
+        `;
+        resultList.innerHTML += card;
+    });
+}
