@@ -1,6 +1,6 @@
 /* ==================================================================
-   VILLAGE CONNECT: DEBUG VERSION 🛠️
-   (Use this to fix "Nothing is working")
+   VILLAGE CONNECT: FINAL ENGINE 🚀
+   Features: Auth, Cloud DB, Smart Search, Smart Likes, Viral Share
    ================================================================== */
 
 // 1. FIREBASE CONFIGURATION
@@ -13,29 +13,28 @@ const firebaseConfig = {
     appId: "1:885677166072:web:49ae174770de8d00a49a0d"
 };
 
-// Initialize Firebase
+// Initialize Firebase (Safely)
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
-    console.log("🔥 Firebase Initialized");
 }
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Global Variables
+// 🧠 GLOBAL MEMORY
 let globalTraditions = [];
 let currentUser = null; 
 let editId = null;      
 
 // ==========================================
-// 2. STARTUP (With Debug Alerts)
+// 2. STARTUP & AUTHENTICATION
 // ==========================================
 
 window.onload = function() {
-    // alert("🚀 App Started! Checking Connection..."); // Uncomment if completely dead
-    loadFromCloud();
+    console.log("🚀 App Starting...");
+    loadFromCloud(); // Download Data
 };
 
-// 👮 Monitor User
+// 👮 Monitor User Status
 auth.onAuthStateChanged((user) => {
     const loginBtn = document.getElementById("navLoginBtn");
     const logoutBtn = document.getElementById("navLogoutBtn");
@@ -44,14 +43,16 @@ auth.onAuthStateChanged((user) => {
     const welcomeMsg = document.getElementById("welcomeMsg");
 
     if (user) {
+        // LOGGED IN
         currentUser = user;
         if(loginBtn) loginBtn.style.display = "none";
         if(logoutBtn) logoutBtn.style.display = "block";
         if(addBox) addBox.style.display = "block";
         if(loginWarning) loginWarning.style.display = "none";
         if(welcomeMsg) welcomeMsg.innerText = "Hi, " + user.displayName + " 👋";
-        renderList(globalTraditions); // Refresh to show Red Hearts
+        renderList(globalTraditions); // Refresh for Red Hearts
     } else {
+        // GUEST
         currentUser = null;
         if(loginBtn) loginBtn.style.display = "block";
         if(logoutBtn) logoutBtn.style.display = "none";
@@ -66,7 +67,7 @@ function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
         .then(() => alert("✅ Login Success!"))
-        .catch((e) => alert("❌ Login Error: " + e.message));
+        .catch((e) => alert("❌ Error: " + e.message));
 }
 
 function logout() {
@@ -74,21 +75,20 @@ function logout() {
 }
 
 // ==========================================
-// 3. CORE FUNCTIONS (Fixed)
+// 3. CORE: DOWNLOAD & SEARCH
 // ==========================================
 
+// ☁️ DOWNLOAD DATA
 function loadFromCloud() {
     const resultList = document.getElementById("resultList");
-    if(resultList) resultList.innerHTML = "<p style='text-align:center'>📡 Connecting to Database...</p>";
+    if(resultList) resultList.innerHTML = "<p style='text-align:center; color:#666;'>📡 Connecting to Database...</p>";
 
-    // ⚠️ CHANGED: Removed .orderBy() to prevent crashes with old data
-    // ⚠️ CHANGED: Collection name is 'traditions' (Make sure your DB matches this!)
+    // Note: Removed .orderBy to prevent crashes on old data. 
     db.collection("traditions").get()
     .then((snapshot) => {
         globalTraditions = []; 
         
         if (snapshot.empty) {
-            // alert("⚠️ Database Connected, but it is EMPTY.");
             renderList([]);
             return;
         }
@@ -99,40 +99,72 @@ function loadFromCloud() {
             globalTraditions.push(data);
         });
 
-        // alert("📦 Loaded " + globalTraditions.length + " stories!");
         renderList(globalTraditions); 
     })
     .catch((error) => {
-        alert("❌ DATA ERROR: " + error.message + "\n\nCHECK: 1. Internet? 2. Firestore Rules set to true?");
+        console.error("Error loading:", error);
+        if(resultList) resultList.innerHTML = "<p style='color:red; text-align:center'>❌ Error loading data.</p>";
     });
 }
 
+// 🔍 SMART SEARCH
+function findTraditions() {
+    const query = document.getElementById("cityInput").value.toLowerCase().trim();
+    
+    if (!query) {
+        renderList(globalTraditions); 
+        return;
+    }
+
+    const scoredData = globalTraditions.map(item => {
+        let score = 0;
+        // Priority 1: Title or City (10 pts)
+        if (item.title && item.title.toLowerCase().includes(query)) score += 10;
+        if (item.city && item.city.toLowerCase().includes(query)) score += 10;
+        // Priority 2: Description (1 pt)
+        if (item.desc && item.desc.toLowerCase().includes(query)) score += 1;
+
+        return { ...item, score: score };
+    });
+
+    // Filter & Sort
+    const matches = scoredData
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+    renderList(matches, true); 
+}
+
+// ==========================================
+// 4. UI: RENDER LIST (With Share Button)
+// ==========================================
 function renderList(dataArray, showScore = false) {
     const resultList = document.getElementById("resultList");
     if(!resultList) return;
+    
     resultList.innerHTML = "";
 
     if (dataArray.length === 0) {
-        resultList.innerHTML = "<p style='text-align:center; margin-top:20px;'>❌ No traditions found.</p>";
+        resultList.innerHTML = "<p style='text-align:center; margin-top:20px;'>❌ No stories found.</p>";
         return;
     }
 
     dataArray.forEach(t => {
-        // Score Border
+        // A. Score Border
         let borderStyle = "none";
         if(showScore) {
             if(t.score >= 10) borderStyle = "4px solid #4CAF50"; 
             else if(t.score >= 1) borderStyle = "4px solid #FFC107"; 
         }
 
-        // ❤️ SMART LIKE LOGIC
+        // B. Smart Like Logic
         const likesArray = t.likedBy || []; 
         const isLikedByMe = currentUser && likesArray.includes(currentUser.uid);
         const heartColor = isLikedByMe ? "#ff4444" : "#888"; 
         const heartIcon = isLikedByMe ? "❤️" : "🤍";
         const btnBorder = isLikedByMe ? "1px solid #ff4444" : "1px solid #ccc";
 
-        // Owner Buttons
+        // C. Owner Buttons
         let ownerBtns = "";
         if (currentUser && t.uid === currentUser.uid) {
             ownerBtns = `
@@ -141,8 +173,15 @@ function renderList(dataArray, showScore = false) {
             `;
         }
 
+        // D. Photo
         const photoHTML = t.photo ? `<img src="${t.photo}" style="width:100%; border-radius:10px; margin:10px 0;">` : "";
 
+        // E. Clean strings for Share function
+        const cleanTitle = t.title ? t.title.replace(/'/g, "\\'") : "";
+        const cleanCity = t.city ? t.city.replace(/'/g, "\\'") : "";
+        const cleanDesc = t.desc ? t.desc.replace(/'/g, "\\'").replace(/\n/g, " ") : "";
+
+        // F. Build Card
         const card = `
             <div class="card" style="border-left: ${borderStyle}; background:white; padding:15px; border-radius:15px; margin-top:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                 <div style="display:flex; justify-content:space-between;">
@@ -150,23 +189,40 @@ function renderList(dataArray, showScore = false) {
                     <small style="background:#eee; padding:2px 8px; border-radius:5px; height:fit-content;">${t.city}</small>
                 </div>
                 ${photoHTML}
-                <p style="margin-top:10px;">${t.desc}</p>
+                <p style="margin-top:10px; line-height:1.5;">${t.desc}</p>
+                
                 <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                    <button onclick="likeTradition('${t.id}')" 
-                            style="background:none; border:${btnBorder}; color:${heartColor}; padding:5px 15px; border-radius:20px; cursor:pointer; transition:0.2s;">
-                        ${heartIcon} ${t.likes || 0}
-                    </button>
+                    
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="likeTradition('${t.id}')" 
+                                style="background:none; border:${btnBorder}; color:${heartColor}; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:bold; transition:0.2s; display:flex; align-items:center; gap:5px;">
+                            ${heartIcon} ${t.likes || 0}
+                        </button>
+                        <button onclick="shareTradition('${cleanTitle}', '${cleanCity}', '${cleanDesc}')" 
+                                style="background:#f0f2f5; border:none; color:#2a5298; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
+                            📤 Share
+                        </button>
+                    </div>
+                    
                     <div>${ownerBtns}</div>
                 </div>
-                <small style="color:#999; display:block; margin-top:10px;">By ${t.author || "Guest"}</small>
+                
+                <small style="color:#999; display:block; margin-top:10px; font-size:0.8rem;">
+                    By ${t.author || "Guest"} • ${t.date || "Unknown"}
+                </small>
             </div>
         `;
         resultList.innerHTML += card;
     });
 }
 
+// ==========================================
+// 5. ACTIONS: LIKE, SHARE, ADD, DELETE
+// ==========================================
+
+// ❤️ TOGGLE LIKE
 function likeTradition(id) {
-    if (!currentUser) return alert("Please Login to like!");
+    if (!currentUser) return alert("🔒 Please Login to like!");
 
     const post = globalTraditions.find(p => p.id === id);
     if (!post) return;
@@ -188,7 +244,23 @@ function likeTradition(id) {
     }
 }
 
-// Actions
+// 📲 SHARE FUNCTION
+function shareTradition(title, city, desc) {
+    const shareData = {
+        title: 'Village Connect 🇮🇳',
+        text: `🌟 Check out "${title}" in ${city}!\n\n"${desc.substring(0, 80)}..."\n\nRead more on Village Connect! 🚀`,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        navigator.share(shareData).catch((err) => console.log(err));
+    } else {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + " " + shareData.url)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+}
+
+// ➕ ADD POST
 function addTradition() {
     if (!currentUser) return alert("Please Login!");
 
@@ -199,25 +271,24 @@ function addTradition() {
     const fileInput = document.getElementById("newPhoto");
     const file = fileInput.files[0];
 
-    if (!city || !title) return alert("City & Title required!");
+    if (!city || !title) return alert("City and Title are required!");
 
     const saveToDB = (photoData) => {
         const payload = {
             city: city, title: title, date: date, desc: desc,
             author: currentUser.displayName, uid: currentUser.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            // Ensure likedBy exists for new posts
-            likes: 0, likedBy: [] 
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (photoData) payload.photo = photoData;
 
         if (editId) {
             db.collection("traditions").doc(editId).update(payload).then(() => {
-                alert("Updated!"); resetForm(); loadFromCloud();
+                alert("Updated! ✅"); resetForm(); loadFromCloud();
             });
         } else {
+            payload.likes = 0; payload.likedBy = [];
             db.collection("traditions").add(payload).then(() => {
-                alert("Posted!"); resetForm(); loadFromCloud();
+                alert("Published! 🎉"); resetForm(); loadFromCloud();
             });
         }
     };
@@ -232,12 +303,14 @@ function addTradition() {
     }
 }
 
+// 🗑 DELETE POST
 function deleteTradition(id) {
     if(confirm("Delete this?")) {
         db.collection("traditions").doc(id).delete().then(() => loadFromCloud());
     }
 }
 
+// ✎ EDIT POST
 function editTradition(id) {
     const item = globalTraditions.find(t => t.id === id);
     if(item) {
@@ -251,6 +324,7 @@ function editTradition(id) {
     }
 }
 
+// 🔄 RESET & NAV
 function resetForm() {
     document.getElementById("newCity").value = "";
     document.getElementById("newTitle").value = "";
@@ -270,20 +344,4 @@ function showSection(id) {
     active.style.display = "flex";
     if(id === 'home') active.style.flexDirection = 'column';
     else active.style.justifyContent = 'center';
-}
-
-function findTraditions() {
-    const query = document.getElementById("cityInput").value.toLowerCase().trim();
-    if (!query) { renderList(globalTraditions); return; }
-
-    const scoredData = globalTraditions.map(item => {
-        let score = 0;
-        if (item.title && item.title.toLowerCase().includes(query)) score += 10;
-        if (item.city && item.city.toLowerCase().includes(query)) score += 10;
-        if (item.desc && item.desc.toLowerCase().includes(query)) score += 1;
-        return { ...item, score: score };
-    });
-
-    const matches = scoredData.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
-    renderList(matches, true); 
 }
