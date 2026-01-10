@@ -182,6 +182,9 @@ function findTraditions() {
 // ==========================================
 // 5. UI RENDERING (Draws the Cards)
 // ==========================================
+// ==========================================
+// 5. UI RENDERING (Draws the Cards)
+// ==========================================
 function renderList(dataArray, showScore = false) {
     const resultList = document.getElementById("resultList");
     resultList.innerHTML = "";
@@ -190,6 +193,68 @@ function renderList(dataArray, showScore = false) {
         resultList.innerHTML = "<p style='text-align:center'>❌ No traditions found.</p>";
         return;
     }
+
+    dataArray.forEach(t => {
+        // 1. SCORE VISUALIZATION (For Search Results)
+        // If it's a search result, show Green/Yellow borders
+        let borderStyle = "none";
+        if(showScore) {
+            if(t.score >= 10) borderStyle = "4px solid #4CAF50"; // Green (High Match)
+            else if(t.score >= 1) borderStyle = "4px solid #FFC107"; // Yellow (Medium Match)
+        }
+
+        // 2. CHECK AUTHOR (Show Edit/Delete only if I created it)
+        let deleteBtn = "";
+        if (currentUser && t.uid === currentUser.uid) {
+            deleteBtn = `
+                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:10px;">✎ Edit</button>
+                <button onclick="deleteTradition('${t.id}')" style="color:red; background:none; border:none; cursor:pointer;">🗑 Delete</button>
+            `;
+        }
+
+        // 3. SMART LIKE LOGIC (The New Feature) ❤️
+        // Check if MY User ID is inside the 'likedBy' list of this post
+        const likesArray = t.likedBy || []; 
+        const isLikedByMe = currentUser && likesArray.includes(currentUser.uid);
+
+        // Visuals: Red if Liked, Grey if Not
+        const heartColor = isLikedByMe ? "#ff4444" : "#888"; 
+        const heartIcon = isLikedByMe ? "❤️" : "🤍";
+        const btnBorder = isLikedByMe ? "1px solid #ff4444" : "1px solid #ccc";
+
+        // 4. PHOTO HANDLING
+        const photoHTML = t.photo ? `<img src="${t.photo}">` : "";
+
+        // 5. BUILD THE CARD
+        const card = `
+            <div class="card" style="border-left: ${borderStyle};">
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>${t.title}</h3>
+                    <small style="background:#eee; padding:2px 5px; border-radius:5px; height:fit-content;">${t.city}</small>
+                </div>
+                
+                ${photoHTML}
+                
+                <p style="margin-top:10px;">${t.desc}</p>
+                
+                <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <button onclick="likeTradition('${t.id}')" 
+                            style="background:none; border:${btnBorder}; color:${heartColor}; padding:5px 15px; border-radius:20px; cursor:pointer; font-weight:bold; transition:0.2s;">
+                        ${heartIcon} ${t.likes || 0}
+                    </button>
+                    
+                    <div>${deleteBtn}</div>
+                </div>
+                
+                <small style="color:#999; display:block; margin-top:10px; font-size:0.8rem;">
+                    By ${t.author} • ${t.date}
+                </small>
+            </div>
+        `;
+        resultList.innerHTML += card;
+    });
+}
+
 
     dataArray.forEach(t => {
         // Color border based on score (Green=High, Orange=Low)
@@ -235,12 +300,48 @@ function renderList(dataArray, showScore = false) {
 // 6. UTILS (Like, Delete, Reset, Nav)
 // ==========================================
 
+// ==========================================
+// ❤️ SMART LIKE (Toggle: Like / Unlike)
+// ==========================================
 function likeTradition(id) {
-    if(!currentUser) return alert("Login to like!");
-    db.collection("traditions").doc(id).update({
-        likes: firebase.firestore.FieldValue.increment(1)
-    }).then(() => loadFromCloud()); // Refresh UI
+    if (!currentUser) {
+        alert("🔒 Please Login to like!");
+        return;
+    }
+
+    // 1. Find the post in local memory to check current state
+    const post = globalTraditions.find(p => p.id === id);
+    if (!post) return;
+
+    // 2. Check if this user ALREADY liked it
+    // (We handle cases where 'likedBy' might be undefined for old posts)
+    const likesArray = post.likedBy || [];
+    const alreadyLiked = likesArray.includes(currentUser.uid);
+
+    const docRef = db.collection("traditions").doc(id);
+
+    if (alreadyLiked) {
+        // 💔 UNLIKE (Remove User ID)
+        docRef.update({
+            likes: firebase.firestore.FieldValue.increment(-1),
+            likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+        }).then(() => {
+            console.log("Unliked");
+            loadFromCloud(); // Refresh UI
+        });
+
+    } else {
+        // ❤️ LIKE (Add User ID)
+        docRef.update({
+            likes: firebase.firestore.FieldValue.increment(1),
+            likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+        }).then(() => {
+            console.log("Liked");
+            loadFromCloud(); // Refresh UI
+        });
+    }
 }
+
 
 function deleteTradition(id) {
     if(confirm("Delete this story?")) {
