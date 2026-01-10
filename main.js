@@ -10,78 +10,89 @@ const firebaseConfig = {
     appId: "1:885677166072:web:49ae174770de8d00a49a0d"
 };
   
-// Initialize Firebase
+// Initialize
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Global Variables
-var currentUser = null; 
-var editId = null;      
+// 🧠 GLOBAL MEMORY (Stores data from Cloud for fast searching)
+let globalTraditions = [];
+let currentUser = null; 
+let editId = null;      
 
 // ==========================================
-// 2. AUTHENTICATION (Login/Logout)
+// 2. AUTHENTICATION & STARTUP
 // ==========================================
 
-// 🟢 GOOGLE LOGIN
-function googleLogin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            console.log("Login Success:", result.user);
-        })
-        .catch((error) => {
-            alert("Login Failed: " + error.message);
-        });
-}
+// Run this when page loads
+window.onload = function() {
+    loadFromCloud(); // ☁️ Download Data immediately
+};
 
-// 🔴 LOGOUT
-function logout() {
-    auth.signOut().then(() => {
-        alert("Logged Out!");
-        location.reload(); 
-    });
-}
-
-// 👮 SECURITY GUARD
+// 👮 Monitor User Status
 auth.onAuthStateChanged((user) => {
-    const gate = document.getElementById("welcomeGate");
-    const app = document.getElementById("mainApp");
+    const loginBtn = document.getElementById("navLoginBtn");
+    const logoutBtn = document.getElementById("navLogoutBtn");
     const addBox = document.getElementById("addBox");
+    const loginWarning = document.getElementById("loginWarning");
+    const welcomeMsg = document.getElementById("welcomeMsg");
 
     if (user) {
         currentUser = user;
-        if(gate) gate.style.display = "none";
-        if(app) app.style.display = "block";
-
-        document.getElementById("welcomeMsg").innerText = "Hi, " + user.displayName;
-        document.getElementById("btnLogin").style.display = "none";
-        document.getElementById("btnLogout").style.display = "inline-block";
-
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "block";
         if(addBox) addBox.style.display = "block";
-
+        if(loginWarning) loginWarning.style.display = "none";
+        if(welcomeMsg) welcomeMsg.innerText = "Hi, " + user.displayName + " 👋";
     } else {
         currentUser = null;
-        document.getElementById("welcomeMsg").innerText = "Guest Mode";
-        document.getElementById("btnLogin").style.display = "inline-block";
-        document.getElementById("btnLogout").style.display = "none";
+        loginBtn.style.display = "block";
+        logoutBtn.style.display = "none";
         if(addBox) addBox.style.display = "none";
+        if(loginWarning) loginWarning.style.display = "block";
+        if(welcomeMsg) welcomeMsg.innerText = "Welcome, Guest";
     }
 });
 
-function enterAsGuest() {
-    document.getElementById("welcomeGate").style.display = "none";
-    document.getElementById("mainApp").style.display = "block";
+function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then(() => alert("Login Success!"))
+        .catch((e) => alert("Error: " + e.message));
+}
+
+function logout() {
+    auth.signOut().then(() => location.reload());
 }
 
 // ==========================================
-// 3. ADD & EDIT TRADITIONS (With Photos 📸)
+// 3. CORE FUNCTIONS (Load, Add, Edit)
 // ==========================================
 
+// ☁️ DOWNLOAD DATA FROM FIREBASE
+function loadFromCloud() {
+    const resultList = document.getElementById("resultList");
+    resultList.innerHTML = "<p style='text-align:center'>📡 Connecting to Village Database...</p>";
+
+    db.collection("traditions").orderBy("createdAt", "desc").get().then((snapshot) => {
+        globalTraditions = []; // Reset Memory
+        
+        snapshot.forEach((doc) => {
+            let data = doc.data();
+            data.id = doc.id; // Add ID to the object
+            globalTraditions.push(data);
+        });
+
+        console.log("📦 Loaded " + globalTraditions.length + " stories.");
+        renderList(globalTraditions); // Show everything initially
+    });
+}
+
+// ➕ ADD or UPDATE TRADITION
 function addTradition() {
-    if (!currentUser) return alert("Please sign in to post!");
+    if (!currentUser) return alert("Please Login!");
 
     const city = document.getElementById("newCity").value.trim();
     const title = document.getElementById("newTitle").value.trim();
@@ -90,267 +101,184 @@ function addTradition() {
     const fileInput = document.getElementById("newPhoto");
     const file = fileInput.files[0];
 
-    if (!city || !title) return alert("Please fill in City and Event Name.");
+    if (!city || !title) return alert("City and Title are required!");
 
-    // 📸 PHOTO LOGIC: Check size limit (1MB)
-    if (file && file.size > 1000000) {
-        return alert("File is too big! Please use an image smaller than 1MB.");
-    }
+    // Helper: Saves to Firestore
+    const saveToDB = (photoBase64) => {
+        const payload = {
+            city: city,
+            title: title,
+            date: date,
+            desc: desc,
+            author: currentUser.displayName,
+            uid: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        if (photoBase64) payload.photo = photoBase64; // Add photo only if exists
 
-    // Helper function to save to DB
-    const saveToDB = (photoString) => {
         if (editId) {
-            // --- UPDATE ---
-            let updateData = {
-                city: city.toLowerCase(),
-                displayCity: city,
-                title: title,
-                date: date,
-                desc: desc
-            };
-            if (photoString) updateData.photo = photoString; // Only update photo if new one provided
-
-            db.collection("traditions").doc(editId).update(updateData).then(() => {
-                alert("Updated Successfully! ✅");
+            // Update
+            db.collection("traditions").doc(editId).update(payload).then(() => {
+                alert("Updated! ✅");
                 resetForm();
-                findTraditions(); 
+                loadFromCloud();
             });
         } else {
-            // --- ADD NEW ---
-            db.collection("traditions").add({
-                city: city.toLowerCase(),
-                displayCity: city,
-                title: title,
-                date: date,
-                desc: desc,
-                photo: photoString || "", // Save empty string if no photo
-                author: currentUser.displayName,
-                uid: currentUser.uid,            
-                likes: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert("Tradition Added! 🎉");
+            // Create New
+            payload.likes = 0; // Initialize likes
+            db.collection("traditions").add(payload).then(() => {
+                alert("Published! 🎉");
                 resetForm();
+                loadFromCloud();
             });
         }
     };
 
-    // If there is a file, convert it. If not, just save.
+    // Handle Photo Conversion
     if (file) {
+        if (file.size > 1000000) return alert("Photo too big! Max 1MB.");
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64String = e.target.result; // This is the image as text
-            saveToDB(base64String);
-        };
+        reader.onload = (e) => saveToDB(e.target.result);
         reader.readAsDataURL(file);
     } else {
-        saveToDB(null); // No photo
+        saveToDB(null);
+    }
+}
+
+// ==========================================
+// 4. THE SMART SEARCH ALGORITHM 🧠
+// ==========================================
+function findTraditions() {
+    const query = document.getElementById("cityInput").value.toLowerCase().trim();
+    
+    if (!query) {
+        renderList(globalTraditions); // Show all if search is empty
+        return;
+    }
+
+    // 1. SCORING LOGIC
+    const scoredData = globalTraditions.map(item => {
+        let score = 0;
+        // Priority 1: Title or City Name (10 pts)
+        if (item.title.toLowerCase().includes(query)) score += 10;
+        if (item.city.toLowerCase().includes(query)) score += 10;
+        
+        // Priority 2: Description (1 pt)
+        if (item.desc.toLowerCase().includes(query)) score += 1;
+
+        return { ...item, score: score };
+    });
+
+    // 2. FILTER & SORT (Highest Score First)
+    const matches = scoredData
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+    // 3. DISPLAY
+    renderList(matches, true); // true = show score colors
+}
+
+// ==========================================
+// 5. UI RENDERING (Draws the Cards)
+// ==========================================
+function renderList(dataArray, showScore = false) {
+    const resultList = document.getElementById("resultList");
+    resultList.innerHTML = "";
+
+    if (dataArray.length === 0) {
+        resultList.innerHTML = "<p style='text-align:center'>❌ No traditions found.</p>";
+        return;
+    }
+
+    dataArray.forEach(t => {
+        // Color border based on score (Green=High, Orange=Low)
+        let borderStyle = "none";
+        if(showScore) {
+            if(t.score >= 10) borderStyle = "4px solid #4CAF50"; // Green
+            else if(t.score >= 1) borderStyle = "4px solid #FFC107"; // Yellow
+        }
+
+        // Check if current user owns this post
+        let deleteBtn = "";
+        if (currentUser && t.uid === currentUser.uid) {
+            deleteBtn = `
+                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:10px;">✎ Edit</button>
+                <button onclick="deleteTradition('${t.id}')" style="color:red; background:none; border:none; cursor:pointer;">🗑 Delete</button>
+            `;
+        }
+
+        const photoHTML = t.photo ? `<img src="${t.photo}">` : "";
+
+        const card = `
+            <div class="card" style="border-left: ${borderStyle};">
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>${t.title}</h3>
+                    <small style="background:#eee; padding:2px 5px; border-radius:5px;">${t.city}</small>
+                </div>
+                ${photoHTML}
+                <p>${t.desc}</p>
+                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <button onclick="likeTradition('${t.id}')" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:20px; cursor:pointer;">
+                        ❤️ ${t.likes || 0}
+                    </button>
+                    <div>${deleteBtn}</div>
+                </div>
+                <small style="color:#999; display:block; margin-top:5px;">By ${t.author} | ${t.date}</small>
+            </div>
+        `;
+        resultList.innerHTML += card;
+    });
+}
+
+// ==========================================
+// 6. UTILS (Like, Delete, Reset, Nav)
+// ==========================================
+
+function likeTradition(id) {
+    if(!currentUser) return alert("Login to like!");
+    db.collection("traditions").doc(id).update({
+        likes: firebase.firestore.FieldValue.increment(1)
+    }).then(() => loadFromCloud()); // Refresh UI
+}
+
+function deleteTradition(id) {
+    if(confirm("Delete this story?")) {
+        db.collection("traditions").doc(id).delete().then(() => loadFromCloud());
+    }
+}
+
+function editTradition(id) {
+    window.scrollTo(0,0);
+    showSection('add'); // Switch tab
+    const item = globalTraditions.find(t => t.id === id);
+    if(item) {
+        document.getElementById("newCity").value = item.city;
+        document.getElementById("newTitle").value = item.title;
+        document.getElementById("newDesc").value = item.desc;
+        document.getElementById("newDate").value = item.date;
+        document.getElementById("submitBtn").innerText = "Update Tradition";
+        editId = id;
     }
 }
 
 function resetForm() {
     document.getElementById("newCity").value = "";
     document.getElementById("newTitle").value = "";
-    document.getElementById("newDate").value = "";
     document.getElementById("newDesc").value = "";
-    document.getElementById("newPhoto").value = ""; // Clear file input
+    document.getElementById("newDate").value = "";
+    document.getElementById("newPhoto").value = "";
+    document.getElementById("submitBtn").innerText = "Post Tradition";
+    editId = null;
+}
+
+function showSection(id) {
+    document.getElementById("homeSection").style.display = "none";
+    document.getElementById("feedSection").style.display = "none";
+    document.getElementById("addSection").style.display = "none";
     
-    editId = null; 
-    let btn = document.querySelector("#addBox button");
-    btn.innerText = "Submit Tradition";
-    btn.style.background = "#4CAF50"; 
-}
-
-// ==========================================
-// 4. SEARCH & DISPLAY
-// ==========================================
-function findTraditions() {
-    const searchCity = document.getElementById("cityInput").value.trim().toLowerCase();
-    const resultList = document.getElementById("resultList");
-    
-    if (!searchCity) return alert("Please enter a city name.");
-
-    resultList.innerHTML = "<p>Searching...</p>";
-
-    db.collection("traditions")
-      .where("city", "==", searchCity)
-      .get()
-      .then((querySnapshot) => {
-          resultList.innerHTML = ""; 
-
-          if (querySnapshot.empty) {
-              resultList.innerHTML = "<p>No traditions found here yet.</p>";
-              return;
-          }
-
-          querySnapshot.forEach((doc) => {
-              const t = doc.data();
-              const id = doc.id;
-              
-              const isOwner = currentUser && t.uid === currentUser.uid;
-
-              let actionButtons = "";
-              if (isOwner) {
-                  actionButtons = `
-                      <button onclick="editTradition('${id}')" style="background:orange; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer;">Edit</button>
-                      <button onclick="deleteTradition('${id}')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">Delete</button>
-                  `;
-              }
-
-              let isLiked = localStorage.getItem("liked_" + id) === "yes";
-              let heartColor = isLiked ? "grey" : "red";
-
-              // 📸 CHECK FOR PHOTO
-              let photoHTML = "";
-              if (t.photo) {
-                  photoHTML = `<img src="${t.photo}" style="width:100%; max-height:300px; object-fit:cover; border-radius:5px; margin-top:10px;">`;
-              }
-
-              resultList.innerHTML += `
-                  <div class="card">
-                      <h3>${t.title}</h3>
-                      ${photoHTML}
-                      <p>${t.desc}</p>
-                      <small>📅 ${t.date} | 📍 ${t.displayCity || t.city}</small>
-                      <br><br>
-                      
-                      <button onclick="likeTradition('${id}')" style="background:white; border:1px solid ${heartColor}; color:${heartColor}; margin-right:5px; cursor:pointer;">
-                          ❤️ ${t.likes || 0}
-                      </button>
-
-                      ${actionButtons}
-                      
-                      <br>
-                      <small style="color:#888; font-size:10px;">By: ${t.author || "Guest"}</small>
-                  </div>
-              `;
-          });
-      })
-      .catch(err => {
-          console.error("Search Error:", err);
-          resultList.innerHTML = "Error loading data.";
-      });
-}
-
-// ==========================================
-// 5. ACTIONS
-// ==========================================
-
-function likeTradition(id) {
-    if (!currentUser) return alert("Please sign in to like! 🔒");
-    if (localStorage.getItem("liked_" + id) === "yes") return alert("You already liked this! ❤️");
-
-    localStorage.setItem("liked_" + id, "yes");
-
-    db.collection("traditions").doc(id).update({
-        likes: firebase.firestore.FieldValue.increment(1)
-    }).then(() => {
-        let btn = document.activeElement;
-        if(btn) btn.style.color = "grey"; 
-    });
-}
-
-function editTradition(id) {
-    if (!currentUser) return alert("Please sign in to edit!");
-    window.scrollTo(0, 0);
-
-    db.collection("traditions").doc(id).get().then((doc) => {
-        let data = doc.data();
-        document.getElementById("newCity").value = data.displayCity || data.city;
-        document.getElementById("newTitle").value = data.title;
-        document.getElementById("newDate").value = data.date;
-        document.getElementById("newDesc").value = data.desc;
-        // Note: We don't preload the file input because browsers block that for security.
-
-        editId = id;
-        let btn = document.querySelector("#addBox button");
-        btn.innerText = "Update Tradition";
-        btn.style.background = "orange";
-    });
-}
-
-function deleteTradition(id) {
-    if (!currentUser) return alert("Please sign in to delete!");
-    if (confirm("Are you sure you want to delete this?")) {
-        db.collection("traditions").doc(id).delete().then(() => {
-            alert("Deleted.");
-            findTraditions(); 
-        });
-    }
-}
-/* =========================================
-   MOBILE "MINI-BRAIN" SEARCH ENGINE 🧠
-   (Runs 100% in your browser, no server needed)
-   ========================================= */
-
-// 1. The "Database" (Simulated Memory)
-const villageData = [
-    { 
-        id: 1, 
-        city: "Kavutaram", 
-        text: "The heavy rain festival happens in August. Farmers pray for good harvest.", 
-        tags: ["festival", "rain", "prayer"] 
-    },
-    { 
-        id: 2, 
-        city: "Kavutaram", 
-        text: "The big Banyan Tree was planted in 1950. It is a meeting spot for elders.", 
-        tags: ["nature", "tree", "history", "1950"] 
-    },
-    { 
-        id: 3, 
-        city: "Vijayawada", 
-        text: "Famous for spicy mango pickle made in summer. It uses a secret grandmother recipe.", 
-        tags: ["food", "pickle", "spicy"] 
-    },
-    { 
-        id: 4, 
-        city: "Coastal AP", 
-        text: "Fishermen use hand-woven nets. This tradition is fading away.", 
-        tags: ["fishing", "ocean", "craft"] 
-    }
-];
-
-// 2. The Search Function (The Logic)
-function findTraditions() {
-    const query = document.getElementById('cityInput').value.toLowerCase();
-    const resultList = document.getElementById('resultList');
-    
-    // Clear previous results
-    resultList.innerHTML = "";
-    resultList.innerHTML = `<p style="color:#666; font-style:italic;">🔍 Searching for "${query}"...</p>`;
-
-    // ARTIFICIAL DELAY (To make it feel like AI is thinking)
-    setTimeout(() => {
-        const matches = villageData.filter(item => {
-            // Check City OR Text content OR Tags
-            return item.city.toLowerCase().includes(query) || 
-                   item.text.toLowerCase().includes(query) ||
-                   item.tags.some(tag => tag.includes(query));
-        });
-
-        displayResults(matches);
-    }, 800); 
-}
-
-// 3. The Display (The UI)
-function displayResults(matches) {
-    const resultList = document.getElementById('resultList');
-    resultList.innerHTML = ""; // Clear "Searching..."
-
-    if (matches.length === 0) {
-        resultList.innerHTML = `<div class="card"><p>❌ No traditions found. Try "food" or "tree".</p></div>`;
-        return;
-    }
-
-    matches.forEach(item => {
-        const card = `
-            <div class="card" style="border-left: 4px solid #ffcc00; animation: slideUp 0.3s ease;">
-                <h3>📍 ${item.city}</h3>
-                <p>${item.text}</p>
-                <small style="color:#2a5298; font-weight:bold;">#${item.tags.join(" #")}</small>
-            </div>
-        `;
-        resultList.innerHTML += card;
-    });
+    const active = document.getElementById(id+"Section");
+    active.style.display = (id === 'home') ? 'flex' : 'flex';
+    if(id === 'home') active.style.flexDirection = 'column';
+    else active.style.justifyContent = 'center';
 }

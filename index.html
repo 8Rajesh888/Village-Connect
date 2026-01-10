@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Village Connect | India's Heritage</title>
+    <title>Village Connect | Heritage Archive</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 
@@ -15,28 +19,25 @@
             <button onclick="showSection('home')">Home</button>
             <button onclick="showSection('feed')">Explore</button>
             <button onclick="showSection('add')">Share</button>
-            <button id="navLoginBtn" onclick="googleLogin()">Login</button>
+            
+            <button id="navLoginBtn" onclick="googleLogin()">G Login</button>
+            <button id="navLogoutBtn" onclick="logout()" style="display:none; background: #ff4444; color: white; padding: 5px 10px; border-radius: 20px;">Logout</button>
         </div>
     </nav>
 
     <header id="homeSection" class="active-section">
         <div class="hero-content">
             <h1>Preserve Your <br><span>Village Roots</span></h1>
+            <p>Join India's first digital heritage archive. Record local traditions, festivals, and stories on the cloud.</p>
             
-            <p>Join India's first digital heritage archive. Record local traditions, festivals, and stories on the blockchain of culture.</p>
+            <h3 id="welcomeMsg" style="margin-bottom: 20px; color: #ffcc00;">Welcome, Guest</h3>
             
             <button class="cta-btn" onclick="showSection('feed')">Start Exploring 🚀</button>
 
-            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; opacity: 0.9; flex-wrap: wrap;">
-                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
-                    🇮🇳 500+ Villages
-                </span>
-                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
-                    📸 10k+ Stories
-                </span>
-                <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3);">
-                    🛡️ Heritage Verified
-                </span>
+            <div class="stats-box">
+                <span>🇮🇳 500+ Villages</span>
+                <span>📸 10k+ Stories</span>
+                <span>🛡️ Verified</span>
             </div>
         </div>
     </header>
@@ -44,60 +45,46 @@
     <section id="feedSection" style="display: none;">
         <div class="app-container">
             <h2>🌍 Explore Traditions</h2>
-            <div class="search-box" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="cityInput" placeholder="Search City (e.g. Kavutaram)">
-                <button onclick="findTraditions()" style="background: #ffcc00; border: none; padding: 0 15px; border-radius: 10px; cursor: pointer;"><span class="material-icons">search</span></button>
+            
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle, Kavutaram)..." onkeyup="findTraditions()">
+                <button onclick="findTraditions()"><span class="material-icons">search</span></button>
             </div>
-            <div id="resultList"></div>
+            
+            <div id="resultList">
+                <p style="text-align:center; color:#666;">Loading stories from cloud... ☁️</p>
+            </div>
         </div>
     </section>
 
     <section id="addSection" style="display: none;">
         <div class="app-container">
             <h2>➕ Share a Memory</h2>
-            <div class="add-form" id="addBox">
-                <input type="text" id="newCity" placeholder="City Name">
-                <input type="text" id="newTitle" placeholder="Tradition Title">
+            
+            <div id="loginWarning" style="text-align: center; padding: 20px;">
+                <p>🔒 You must login to post a story.</p>
+                <button onclick="googleLogin()" class="cta-btn">Login with Google</button>
+            </div>
+
+            <div class="add-form" id="addBox" style="display: none;">
+                <input type="text" id="newCity" placeholder="City Name (e.g. Kavutaram)">
+                <input type="text" id="newTitle" placeholder="Title (e.g. Rain Festival)">
                 <input type="date" id="newDate">
-                <textarea id="newDesc" placeholder="Describe the tradition..."></textarea>
+                <textarea id="newDesc" placeholder="Describe the history, food, or tradition..." rows="4"></textarea>
                 
-                <label style="display: block; margin-top: 10px; font-weight: bold;">📸 Upload Photo (Max 1MB)</label>
+                <label style="display: block; margin-top: 10px; font-weight: bold; font-size: 0.9rem;">📸 Upload Photo (Max 1MB)</label>
                 <input type="file" id="newPhoto" accept="image/*">
                 
-                <button onclick="addTradition()" class="cta-btn" style="width: 100%; margin-top: 15px;">Post Tradition</button>
+                <button id="submitBtn" onclick="addTradition()" class="cta-btn" style="width: 100%; margin-top: 15px;">Post Tradition</button>
+                <button onclick="resetForm()" style="width:100%; background:none; border:none; color:#666; margin-top:10px; cursor:pointer;">Cancel / Reset</button>
             </div>
         </div>
     </section>
 
     <footer>
-        <p>Built with 💙 by Rajesh | Future Developer</p>
+        <p>Built with 💙 by Rajesh | Future Engineer</p>
     </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="main.js"></script>
-    
-    <script>
-        // NAVIGATION LOGIC
-        function showSection(sectionId) {
-            document.getElementById('homeSection').style.display = 'none';
-            document.getElementById('feedSection').style.display = 'none';
-            document.getElementById('addSection').style.display = 'none';
-            
-            // Show selected
-            const active = document.getElementById(sectionId + 'Section');
-            active.style.display = (sectionId === 'home') ? 'flex' : 'flex'; 
-            
-            // Fix layout style for sections vs header
-            if(sectionId === 'home') {
-                active.style.display = 'flex';
-                active.style.flexDirection = 'column';
-            } else {
-                active.style.display = 'flex';
-                active.style.justifyContent = 'center';
-            }
-        }
-    </script>
 </body>
 </html>
