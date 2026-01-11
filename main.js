@@ -345,3 +345,46 @@ function showSection(id) {
     if(id === 'home') active.style.flexDirection = 'column';
     else active.style.justifyContent = 'center';
 }
+// ==========================================
+// 🎤 VOICE SEARCH (Iron Man Mode)
+// ==========================================
+function startVoiceSearch() {
+    // Check if browser supports it
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("⚠️ Your browser doesn't support Voice Search. Try Chrome!");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US'; // You can change to 'en-IN' for Indian accent
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    // Visual Feedback
+    const searchBox = document.getElementById("cityInput");
+    searchBox.placeholder = "🎤 Listening... Speak now!";
+    searchBox.style.border = "2px solid #ffcc00"; // Turn yellow when listening
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        
+        // 1. Fill the input
+        searchBox.value = transcript;
+        searchBox.placeholder = "Search (e.g. Rain, Pickle)...";
+        searchBox.style.border = "1px solid #ddd"; // Reset border
+
+        // 2. Auto-Run Search
+        findTraditions();
+        
+        // 3. Cool Alert (Optional)
+        // alert("🗣️ You said: " + transcript); 
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Voice Error:", event.error);
+        searchBox.placeholder = "❌ Error. Try again.";
+        searchBox.style.border = "1px solid red";
+    };
+}
