@@ -47,9 +47,15 @@
             <h2>🌍 Explore Traditions</h2>
             
             <div class="search-box">
-                <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle, Kavutaram)..." onkeyup="findTraditions()">
-                <button onclick="findTraditions()"><span class="material-icons">search</span></button>
-            </div>
+    <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle)..." onkeyup="findTraditions()">
+    
+    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:1px solid #ddd; margin-right:5px;">
+        <span class="material-icons">mic</span>
+    </button>
+    
+    <button onclick="findTraditions()"><span class="material-icons">search</span></button>
+</div>
+
             
             <div id="resultList">
                 <p style="text-align:center; color:#666;">Loading stories from cloud... ☁️</p>
