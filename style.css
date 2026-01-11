@@ -1,4 +1,6 @@
-/* 1. GLOBAL RESET & FONT */
+/* =========================================
+   1. GLOBAL RESET & FONTS
+   ========================================= */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 :root {
@@ -6,17 +8,22 @@
     --dark: #1e3c72;      /* Deep Blue */
     --light: #2a5298;     /* Lighter Blue */
     --glass: rgba(255, 255, 255, 0.95);
+    --danger: #ff4444;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
+/* 🌊 SUPER CALM BACKGROUND */
 body {
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    /* CHANGED: 300% makes the waves wider and softer */
+    background-size: 300% 300%;
+    /* CHANGED: 120s is VERY slow (2 minutes per cycle) */
+    animation: gradientBG 120s ease infinite;
     color: #333;
     min-height: 100vh;
     padding-bottom: 50px;
+    transition: background 0.5s ease, color 0.5s ease;
 }
 
 @keyframes gradientBG {
@@ -25,35 +32,46 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* 2. NAVIGATION */
+/* =========================================
+   2. NAVIGATION (Sticky Glass)
+   ========================================= */
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 5%;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
     z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.logo { color: white; font-size: 1.2rem; font-weight: 700; }
-.nav-links { display: flex; gap: 10px; }
+.logo { color: white; font-size: 1.2rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+.nav-links { display: flex; gap: 10px; align-items: center; }
 
 .nav-links button {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 0.9rem;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: 0.2s;
 }
-.nav-links button:hover { color: var(--primary); }
 
-#navLoginBtn { background: white; color: var(--dark); padding: 5px 15px; border-radius: 20px; font-weight: 600; }
+.nav-links button:hover { background: rgba(255,255,255,0.2); color: var(--primary); }
 
-/* 3. HERO & SECTIONS */
+#navLoginBtn { background: white; color: var(--dark); padding: 5px 15px; border-radius: 20px; font-weight: 700; }
+#navLogoutBtn { background: var(--danger); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 700; }
+
+/* =========================================
+   3. HERO SECTION
+   ========================================= */
 #homeSection {
     min-height: 80vh;
     display: flex;
@@ -66,7 +84,7 @@ nav {
 }
 .hero-content h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 15px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .hero-content span { color: var(--primary); }
-.hero-content p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin-bottom: 25px; }
+.hero-content p { font-size: 1rem; opacity: 0.95; max-width: 600px; margin-bottom: 25px; }
 
 .cta-btn {
     background: var(--primary); color: var(--dark); padding: 12px 30px;
@@ -76,32 +94,91 @@ nav {
 .cta-btn:hover { transform: scale(1.05); }
 
 .stats-box { margin-top: 30px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.stats-box span { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); }
+.stats-box span { background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); }
 
+/* =========================================
+   4. APP CONTAINERS
+   ========================================= */
 section { padding: 40px 20px; display: flex; justify-content: center; }
 
 .app-container {
-    background: var(--glass); width: 100%; max-width: 600px;
-    padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: var(--glass); 
+    width: 100%; max-width: 600px;
+    padding: 20px; border-radius: 20px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     animation: slideUp 0.5s ease-out;
 }
 
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* 4. FORMS & SEARCH */
-input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; background: #f9f9f9; }
-.search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-.search-box button { background: var(--primary); border: none; padding: 0 15px; border-radius: 10px; cursor: pointer; }
+input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 1rem; }
+input:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
 
-/* 5. CARDS */
-.card { background: white; padding: 15px; border-radius: 15px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.card img { width: 100%; border-radius: 10px; margin: 10px 0; max-height: 250px; object-fit: cover; }
+.search-box { display: flex; gap: 8px; margin-bottom: 20px; }
+.search-box button { background: var(--primary); border: none; padding: 0 15px; border-radius: 10px; cursor: pointer; color: var(--dark); }
 
-/* MOBILE FIX */
-@media (max-width: 768px) {
-    nav { flex-direction: column; gap: 10px; padding: 15px; }
-    .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; }
-    .hero-content h1 { font-size: 2rem; }
+/* =========================================
+   5. CARDS
+   ========================================= */
+.card { 
+    background: white; 
+    padding: 15px; 
+    border-radius: 15px; 
+    margin-top: 15px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    transition: background 0.3s ease;
 }
+.card img { width: 100%; border-radius: 10px; margin: 10px 0; max-height: 250px; object-fit: cover; }
+.card h3 { color: var(--dark); margin-bottom: 5px; }
 
 footer { text-align: center; padding: 20px; color: rgba(255, 255, 255, 0.8); font-size: 0.8rem; margin-top: auto; }
+
+/* =========================================
+   📱 MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 768px) {
+    nav { flex-direction: column; gap: 15px; padding: 15px; }
+    .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; }
+    .hero-content h1 { font-size: 2rem; }
+    .app-container { padding: 15px; }
+}
+
+/* =========================================
+   🌙 DARK MODE (Gentle on Eyes)
+   ========================================= */
+body.dark-mode {
+    background: #121212 !important; 
+    color: #e0e0e0;
+    /* Disable animation completely in dark mode for maximum comfort */
+    animation: none; 
+}
+
+body.dark-mode .app-container,
+body.dark-mode .card {
+    background: #1e1e1e;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    color: #cccccc;
+}
+
+body.dark-mode input, 
+body.dark-mode textarea {
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: white;
+}
+
+body.dark-mode h3, 
+body.dark-mode h2,
+body.dark-mode .logo {
+    color: #ffcc00; 
+}
+
+body.dark-mode small {
+    color: #888;
+}
+
+body.dark-mode .search-box button,
+body.dark-mode #navLoginBtn {
+    background: #ffcc00;
+    color: black;
+}

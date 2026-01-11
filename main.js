@@ -388,3 +388,31 @@ function startVoiceSearch() {
         searchBox.style.border = "1px solid red";
     };
 }
+// ==========================================
+// 🌙 DARK MODE LOGIC
+// ==========================================
+
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById("themeBtn");
+
+    // 1. Toggle the class
+    body.classList.toggle("dark-mode");
+
+    // 2. Save preference & Update Icon
+    if (body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
+        btn.innerText = "☀️"; // Change moon to sun
+    } else {
+        localStorage.setItem("theme", "light");
+        btn.innerText = "🌙"; // Change sun to moon
+    }
+}
+
+// 🚀 Run on Startup: Check User's previous choice
+// (Add this inside your window.onload function or just at the bottom)
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-mode");
+    const btn = document.getElementById("themeBtn");
+    if(btn) btn.innerText = "☀️";
+}
