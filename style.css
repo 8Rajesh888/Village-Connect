@@ -182,3 +182,18 @@ body.dark-mode #navLoginBtn {
     background: #ffcc00;
     color: black;
 }
+.image-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #4285F4; /* Google Blue */
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.image-btn:hover {
+    background: #3367D6;
+}

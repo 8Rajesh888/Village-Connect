@@ -134,9 +134,8 @@ function findTraditions() {
 
     renderList(matches, true); 
 }
-
 // ==========================================
-// 4. UI: RENDER LIST (With Share Button)
+// 4. UI: RENDER LIST (Fixed with Smart Google Button)
 // ==========================================
 function renderList(dataArray, showScore = false) {
     const resultList = document.getElementById("resultList");
@@ -150,7 +149,7 @@ function renderList(dataArray, showScore = false) {
     }
 
     dataArray.forEach(t => {
-        // A. Score Border
+        // A. Score Border Logic
         let borderStyle = "none";
         if(showScore) {
             if(t.score >= 10) borderStyle = "4px solid #4CAF50"; 
@@ -173,8 +172,8 @@ function renderList(dataArray, showScore = false) {
             `;
         }
 
-        // D. Photo
-        const photoHTML = t.photo ? `<img src="${t.photo}" style="width:100%; border-radius:10px; margin:10px 0;">` : "";
+        // ✨ D. NEW: Smart Google Image Link (Replaces Photo Upload)
+        const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(t.title + " India tradition")}&tbm=isch`;
 
         // E. Clean strings for Share function
         const cleanTitle = t.title ? t.title.replace(/'/g, "\\'") : "";
@@ -184,11 +183,16 @@ function renderList(dataArray, showScore = false) {
         // F. Build Card
         const card = `
             <div class="card" style="border-left: ${borderStyle}; background:white; padding:15px; border-radius:15px; margin-top:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                
                 <div style="display:flex; justify-content:space-between;">
                     <h3 style="margin:0;">${t.title}</h3>
                     <small style="background:#eee; padding:2px 8px; border-radius:5px; height:fit-content;">${t.city}</small>
                 </div>
-                ${photoHTML}
+
+                <a href="${googleSearchUrl}" target="_blank" class="image-btn" style="display:block; margin:10px 0; padding:10px; background:#4285F4; color:white; text-align:center; border-radius:8px; text-decoration:none; font-weight:600;">
+                    🖼️ See Photos on Google
+                </a>
+
                 <p style="margin-top:10px; line-height:1.5;">${t.desc}</p>
                 
                 <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -215,52 +219,7 @@ function renderList(dataArray, showScore = false) {
         resultList.innerHTML += card;
     });
 }
-
-// ==========================================
-// 5. ACTIONS: LIKE, SHARE, ADD, DELETE
-// ==========================================
-
-// ❤️ TOGGLE LIKE
-function likeTradition(id) {
-    if (!currentUser) return alert("🔒 Please Login to like!");
-
-    const post = globalTraditions.find(p => p.id === id);
-    if (!post) return;
-
-    const likesArray = post.likedBy || [];
-    const alreadyLiked = likesArray.includes(currentUser.uid);
-    const docRef = db.collection("traditions").doc(id);
-
-    if (alreadyLiked) {
-        docRef.update({
-            likes: firebase.firestore.FieldValue.increment(-1),
-            likedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
-        }).then(() => loadFromCloud());
-    } else {
-        docRef.update({
-            likes: firebase.firestore.FieldValue.increment(1),
-            likedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
-        }).then(() => loadFromCloud());
-    }
-}
-
-// 📲 SHARE FUNCTION
-function shareTradition(title, city, desc) {
-    const shareData = {
-        title: 'Village Connect 🇮🇳',
-        text: `🌟 Check out "${title}" in ${city}!\n\n"${desc.substring(0, 80)}..."\n\nRead more on Village Connect! 🚀`,
-        url: window.location.href
-    };
-
-    if (navigator.share) {
-        navigator.share(shareData).catch((err) => console.log(err));
-    } else {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + " " + shareData.url)}`;
-        window.open(whatsappUrl, '_blank');
-    }
-}
-
-// ➕ ADD POST
+// ➕ ADD POST (Simplified: No Photo Upload)
 function addTradition() {
     if (!currentUser) return alert("Please Login!");
 
@@ -268,40 +227,29 @@ function addTradition() {
     const title = document.getElementById("newTitle").value.trim();
     const date = document.getElementById("newDate").value;
     const desc = document.getElementById("newDesc").value;
-    const fileInput = document.getElementById("newPhoto");
-    const file = fileInput.files[0];
+    
+    // We removed fileInput here because we use Google Links now!
 
     if (!city || !title) return alert("City and Title are required!");
 
-    const saveToDB = (photoData) => {
-        const payload = {
-            city: city, title: title, date: date, desc: desc,
-            author: currentUser.displayName, uid: currentUser.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        if (photoData) payload.photo = photoData;
-
-        if (editId) {
-            db.collection("traditions").doc(editId).update(payload).then(() => {
-                alert("Updated! ✅"); resetForm(); loadFromCloud();
-            });
-        } else {
-            payload.likes = 0; payload.likedBy = [];
-            db.collection("traditions").add(payload).then(() => {
-                alert("Published! 🎉"); resetForm(); loadFromCloud();
-            });
-        }
+    const payload = {
+        city: city, title: title, date: date, desc: desc,
+        author: currentUser.displayName, uid: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        likes: 0, likedBy: []
     };
 
-    if (file) {
-        if(file.size > 1000000) return alert("Image too big (Max 1MB)");
-        const reader = new FileReader();
-        reader.onload = (e) => saveToDB(e.target.result);
-        reader.readAsDataURL(file);
+    if (editId) {
+        db.collection("traditions").doc(editId).update(payload).then(() => {
+            alert("Updated! ✅"); resetForm(); loadFromCloud();
+        });
     } else {
-        saveToDB(null);
+        db.collection("traditions").add(payload).then(() => {
+            alert("Published! 🎉"); resetForm(); loadFromCloud();
+        });
     }
 }
+
 
 // 🗑 DELETE POST
 function deleteTradition(id) {
@@ -330,7 +278,6 @@ function resetForm() {
     document.getElementById("newTitle").value = "";
     document.getElementById("newDesc").value = "";
     document.getElementById("newDate").value = "";
-    document.getElementById("newPhoto").value = "";
     document.getElementById("submitBtn").innerText = "Post Tradition";
     editId = null;
 }
