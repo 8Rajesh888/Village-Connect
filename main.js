@@ -133,7 +133,9 @@ function findTraditions() {
         .sort((a, b) => b.score - a.score);
 
     renderList(matches, true); 
+
 }
+
 // ==========================================
 // 4. UI: RENDER LIST (Fixed with Smart Google Button)
 // ==========================================
@@ -363,3 +365,13 @@ if (localStorage.getItem("theme") === "dark") {
     const btn = document.getElementById("themeBtn");
     if(btn) btn.innerText = "☀️";
 }
+// ⌨️ Power User: Press '/' to focus search
+document.addEventListener('keydown', (e) => {
+    const searchBox = document.querySelector('input'); // Make sure this matches your input ID/Tag
+    
+    // If user presses '/' and is NOT already typing in the box
+    if (e.key === '/' && document.activeElement !== searchBox) {
+        e.preventDefault(); // Stop the '/' character from being typed
+        searchBox.focus();  // Jump to search
+    }
+});
