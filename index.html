@@ -42,25 +42,26 @@
             </div>
         </div>
     </header>
-
     <section id="feedSection" style="display: none;">
         <div class="app-container">
             <h2>🌍 Explore Traditions</h2>
             
             <div class="search-box">
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle)..." onkeyup="findTraditions()" style="flex:1;">
+                <div style="display: grid; grid-template-columns: 1fr 50px 50px; gap: 8px; margin-bottom: 12px;">
                     
-                    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:1px solid #ddd;">
+                    <input type="text" id="cityInput" placeholder="Search..." onkeyup="findTraditions()" 
+                           style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #444; background: #222; color: white; font-size: 1rem;">
+                    
+                    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:none; border-radius:12px; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor: pointer;">
                         <span class="material-icons">mic</span>
                     </button>
                     
-                    <button onclick="findTraditions()" style="background: #ffcc00; border: none; color: black; font-weight: bold; padding: 0 15px;">
+                    <button onclick="findTraditions()" style="background: #ffcc00; border:none; border-radius:12px; color: black; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor: pointer;">
                         <span class="material-icons">search</span>
                     </button>
                 </div>
 
-                <div id="filterContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none;">
+                <div id="filterContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none;">
                     <button onclick="filterBy('All')" class="filter-chip active-chip">All</button>
                     <button onclick="filterBy('Festivals')" class="filter-chip">Festivals</button>
                     <button onclick="filterBy('Temples')" class="filter-chip">Temples</button>
@@ -74,6 +75,9 @@
             </div>
         </div>
     </section>
+
+
+
 
     <section id="addSection" style="display: none;">
         <div class="app-container">
