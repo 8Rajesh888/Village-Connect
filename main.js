@@ -247,34 +247,66 @@ function renderList(dataArray, showScore = false) {
 }
 
 // ➕ ADD POST (Simplified: No Photo Upload)
+// ==========================================
+// 3. ADD TRADITION (Updated with Category)
+// ==========================================
 function addTradition() {
-    if (!currentUser) return alert("Please Login!");
+    // 1. Check if user is logged in
+    if (!currentUser) {
+        alert("🔒 Please login to post!");
+        return;
+    }
 
-    const city = document.getElementById("newCity").value.trim();
-    const title = document.getElementById("newTitle").value.trim();
+    // 2. Get values from the HTML inputs
+    const city = document.getElementById("newCity").value;
+    const title = document.getElementById("newTitle").value;
     const date = document.getElementById("newDate").value;
     const desc = document.getElementById("newDesc").value;
     
-    // We removed fileInput here because we use Google Links now!
+    // 🚨 THIS IS THE MISSING PART YOU NEEDED! 🚨
+    const category = document.getElementById("categoryInput").value; 
 
-    if (!city || !title) return alert("City and Title are required!");
-
-    const payload = {
-        city: city, title: title, date: date, desc: desc,
-        author: currentUser.displayName, uid: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        likes: 0, likedBy: []
-    };
-
-    if (editId) {
-        db.collection("traditions").doc(editId).update(payload).then(() => {
-            alert("Updated! ✅"); resetForm(); loadFromCloud();
-        });
-    } else {
-        db.collection("traditions").add(payload).then(() => {
-            alert("Published! 🎉"); resetForm(); loadFromCloud();
-        });
+    // 3. Basic Validation (Don't let them post empty stuff)
+    if (city.trim() === "" || title.trim() === "") {
+        alert("⚠️ Please enter a City and Title.");
+        return;
     }
+
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.innerText = "Posting... ⏳";
+    submitBtn.disabled = true;
+
+    // 4. Save to Firebase
+    db.collection("traditions").add({
+        uid: currentUser.uid,       // Security: Who posted this?
+        author: currentUser.displayName,
+        email: currentUser.email,
+        city: city,
+        title: title,
+        date: date,
+        desc: desc,
+        category: category,         // ✅ NOW WE ARE SAVING IT!
+        likes: 0,
+        likedBy: [],
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        alert("✅ Tradition Posted Successfully!");
+        
+        // Clear the form
+        resetForm(); 
+        
+        // Close the "Add" screen and go to "Feed"
+        showSection('feed'); 
+        
+        // Refresh the list so the new post appears immediately
+        findTraditions(); 
+        
+    }).catch((error) => {
+        console.error("Error adding document: ", error);
+        alert("❌ Error posting. Check console.");
+        submitBtn.innerText = "Post Tradition";
+        submitBtn.disabled = false;
+    });
 }
 
 
