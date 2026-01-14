@@ -2,6 +2,10 @@
    VILLAGE CONNECT: FINAL ENGINE 🚀
    Features: Auth, Cloud DB, Smart Search, Smart Likes, Viral Share
    ================================================================== */
+// GLOBAL VARIABLES
+let currentFilter = 'All'; 
+let globalTraditions = []; 
+let editingId = null; // 👈 THIS tracks if we are editing or creating
 
 // 1. FIREBASE CONFIGURATION
 const firebaseConfig = {
@@ -250,63 +254,86 @@ function renderList(dataArray, showScore = false) {
 // ==========================================
 // 3. ADD TRADITION (Updated with Category)
 // ==========================================
+// ==========================================
+// 3. ADD OR UPDATE TRADITION (Master Function)
+// ==========================================
 function addTradition() {
-    // 1. Check if user is logged in
-    if (!currentUser) {
-        alert("🔒 Please login to post!");
-        return;
-    }
+    if (!currentUser) { alert("🔒 Please login!"); return; }
 
-    // 2. Get values from the HTML inputs
+    // 1. Get Values
     const city = document.getElementById("newCity").value;
     const title = document.getElementById("newTitle").value;
     const date = document.getElementById("newDate").value;
     const desc = document.getElementById("newDesc").value;
-    
-    // 🚨 THIS IS THE MISSING PART YOU NEEDED! 🚨
     const category = document.getElementById("categoryInput").value; 
 
-    // 3. Basic Validation (Don't let them post empty stuff)
+    // 2. Validation
     if (city.trim() === "" || title.trim() === "") {
-        alert("⚠️ Please enter a City and Title.");
+        alert("⚠️ Please enter City and Title.");
         return;
     }
 
     const submitBtn = document.getElementById("submitBtn");
-    submitBtn.innerText = "Posting... ⏳";
     submitBtn.disabled = true;
 
-    // 4. Save to Firebase
-    db.collection("traditions").add({
-        uid: currentUser.uid,       // Security: Who posted this?
-        author: currentUser.displayName,
-        email: currentUser.email,
-        city: city,
-        title: title,
-        date: date,
-        desc: desc,
-        category: category,         // ✅ NOW WE ARE SAVING IT!
-        likes: 0,
-        likedBy: [],
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        alert("✅ Tradition Posted Successfully!");
+    // 🛑 DECISION TIME: ARE WE EDITING OR CREATING? 🛑
+    if (editingId) {
+        // === UPDATE MODE ===
+        submitBtn.innerText = "Updating... 🔄";
         
-        // Clear the form
-        resetForm(); 
+        db.collection("traditions").doc(editingId).update({
+            city: city,
+            title: title,
+            date: date,
+            desc: desc,
+            category: category,
+            // We DO NOT update uid, likes, or timestamp (keep original)
+        }).then(() => {
+            alert("✅ Update Successful!");
+            finishSubmit();
+        }).catch((error) => {
+            console.error("Update Error:", error);
+            alert("❌ Update Failed.");
+            submitBtn.disabled = false;
+        });
+
+    } else {
+        // === CREATE MODE ===
+        submitBtn.innerText = "Posting... ⏳";
         
-        // Close the "Add" screen and go to "Feed"
-        showSection('feed'); 
-        
-        // Refresh the list so the new post appears immediately
-        findTraditions(); 
-        
-    }).catch((error) => {
-        console.error("Error adding document: ", error);
-        alert("❌ Error posting. Check console.");
-        submitBtn.innerText = "Post Tradition";
-        submitBtn.disabled = false;
-    });
+        db.collection("traditions").add({
+            uid: currentUser.uid,
+            author: currentUser.displayName,
+            email: currentUser.email,
+            city: city,
+            title: title,
+            date: date,
+            desc: desc,
+            category: category,
+            likes: 0,
+            likedBy: [],
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("✅ Tradition Posted!");
+            finishSubmit();
+        }).catch((error) => {
+            console.error("Post Error:", error);
+            alert("❌ Post Failed.");
+            submitBtn.disabled = false;
+        });
+    }
+}
+
+// Helper to clean up after saving
+function finishSubmit() {
+    resetForm();
+    showSection('feed');
+    findTraditions();
+    
+    // Reset Edit Mode
+    editingId = null;
+    document.getElementById("submitBtn").innerText = "Post Tradition";
+    document.getElementById("submitBtn").disabled = false;
 }
 
 
@@ -318,18 +345,33 @@ function deleteTradition(id) {
 }
 
 // ✎ EDIT POST
+// ==========================================
+// 5. EDIT FUNCTION (Pre-fill the form)
+// ==========================================
 function editTradition(id) {
-    const item = globalTraditions.find(t => t.id === id);
-    if(item) {
-        showSection('add');
-        document.getElementById("newCity").value = item.city;
-        document.getElementById("newTitle").value = item.title;
-        document.getElementById("newDesc").value = item.desc;
-        document.getElementById("newDate").value = item.date;
-        document.getElementById("submitBtn").innerText = "Update Tradition";
-        editId = id;
-    }
+    // 1. Find the post in our local memory
+    const post = globalTraditions.find(t => t.id === id);
+    if (!post) return;
+
+    // 2. Fill the inputs with existing data
+    document.getElementById("newCity").value = post.city;
+    document.getElementById("newTitle").value = post.title;
+    document.getElementById("newDate").value = post.date;
+    document.getElementById("newDesc").value = post.desc;
+    
+    // ✅ Fill the Category (Default to General if missing)
+    document.getElementById("categoryInput").value = post.category || "General";
+
+    // 3. Switch to "Edit Mode"
+    editingId = id; // Remember which post we are fixing
+    
+    // 4. Change Button Text so user knows
+    document.getElementById("submitBtn").innerText = "Update Tradition 🔄";
+    
+    // 5. Open the Add Screen
+    showSection('add');
 }
+
 
 // 🔄 RESET & NAV
 function resetForm() {
