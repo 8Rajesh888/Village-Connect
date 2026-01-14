@@ -205,10 +205,10 @@ body.dark-mode #navLoginBtn {
     color: white;
     white-space: nowrap; /* Keeps text on one line */
     transition: 0.3s;
-}
-.active-chip {
-    background: #4ade80; /* Green highlight */
-    color: black;
+}.active-chip {
+    background: #00C6FF !important;  /* Cyan Blue */
+    color: black !important;         /* Black Text for contrast */
     font-weight: bold;
     border: none;
+    box-shadow: 0 0 10px rgba(0, 198, 255, 0.6); /* Neon Glow Effect */
 }

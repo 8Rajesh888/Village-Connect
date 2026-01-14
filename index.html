@@ -46,28 +46,29 @@
         <div class="app-container">
             <h2>🌍 Explore Traditions</h2>
             
-            <div class="search-box">
-                <div style="display: grid; grid-template-columns: 1fr 50px 50px; gap: 8px; margin-bottom: 12px;">
+            <div class="search-box" style="display: flex; flex-direction: column; gap: 10px;">
+                
+                <div style="display: flex; width: 100%; gap: 8px;">
                     
                     <input type="text" id="cityInput" placeholder="Search..." onkeyup="findTraditions()" 
-                           style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #444; background: #222; color: white; font-size: 1rem;">
+                           style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #444; background: #222; color: white;">
                     
-                    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:none; border-radius:12px; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor: pointer;">
+                    <button onclick="startVoiceSearch()" style="width: 45px; background:white; color:#333; border:none; border-radius:12px; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
                         <span class="material-icons">mic</span>
                     </button>
-                    
-                    <button onclick="findTraditions()" style="background: #ffcc00; border:none; border-radius:12px; color: black; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor: pointer;">
-                        <span class="material-icons">search</span>
-                    </button>
-                </div>
+<button onclick="findTraditions()" style="background: linear-gradient(135deg, #00C6FF, #0072FF); border:none; border-radius:12px; color: white; font-size:1.2rem; display:flex; align-items:center; justify-content:center; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);">
+    <span class="material-icons">search</span>
+</button>
 
-                <div id="filterContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none;">
+
+                </div> <div id="filterContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none;">
                     <button onclick="filterBy('All')" class="filter-chip active-chip">All</button>
                     <button onclick="filterBy('Festivals')" class="filter-chip">Festivals</button>
                     <button onclick="filterBy('Temples')" class="filter-chip">Temples</button>
                     <button onclick="filterBy('Food')" class="filter-chip">Food</button>
                     <button onclick="filterBy('History')" class="filter-chip">History</button>
                 </div>
+
             </div>
             
             <div id="resultList">
@@ -75,8 +76,6 @@
             </div>
         </div>
     </section>
-
-
 
 
     <section id="addSection" style="display: none;">
