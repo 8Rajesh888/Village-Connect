@@ -22,9 +22,7 @@
             
             <button id="navLoginBtn" onclick="googleLogin()">G Login</button>
             <button id="navLogoutBtn" onclick="logout()" style="display:none; background: #ff4444; color: white; padding: 5px 10px; border-radius: 20px;">Logout</button>
-            <button onclick="toggleTheme()" id="themeBtn" style="font-size:1.2rem; background:none; border:none; cursor:pointer;">
-    🌙
-</button>
+            <button onclick="toggleTheme()" id="themeBtn" style="font-size:1.2rem; background:none; border:none; cursor:pointer;">🌙</button>
         </div>
     </nav>
 
@@ -50,15 +48,26 @@
             <h2>🌍 Explore Traditions</h2>
             
             <div class="search-box">
-    <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle)..." onkeyup="findTraditions()">
-    
-    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:1px solid #ddd; margin-right:5px;">
-        <span class="material-icons">mic</span>
-    </button>
-    
-    <button onclick="findTraditions()"><span class="material-icons">search</span></button>
-</div>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="cityInput" placeholder="Search (e.g. Rain, Pickle)..." onkeyup="findTraditions()" style="flex:1;">
+                    
+                    <button onclick="startVoiceSearch()" style="background:white; color:#333; border:1px solid #ddd;">
+                        <span class="material-icons">mic</span>
+                    </button>
+                    
+                    <button onclick="findTraditions()" style="background: #ffcc00; border: none; color: black; font-weight: bold; padding: 0 15px;">
+                        <span class="material-icons">search</span>
+                    </button>
+                </div>
 
+                <div id="filterContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none;">
+                    <button onclick="filterBy('All')" class="filter-chip active-chip">All</button>
+                    <button onclick="filterBy('Festivals')" class="filter-chip">Festivals</button>
+                    <button onclick="filterBy('Temples')" class="filter-chip">Temples</button>
+                    <button onclick="filterBy('Food')" class="filter-chip">Food</button>
+                    <button onclick="filterBy('History')" class="filter-chip">History</button>
+                </div>
+            </div>
             
             <div id="resultList">
                 <p style="text-align:center; color:#666;">Loading stories from cloud... ☁️</p>
@@ -81,9 +90,20 @@
                 <input type="date" id="newDate">
                 <textarea id="newDesc" placeholder="Describe the history, food, or tradition..." rows="4"></textarea>
                 
+                <select id="categoryInput" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(5px);">
+                    <option value="General" style="color: black;">🌍 General</option>
+                    <option value="Festivals" style="color: black;">🎉 Festivals</option>
+                    <option value="Temples" style="color: black;">🛕 Temples</option>
+                    <option value="Food" style="color: black;">🍲 Food</option>
+                    <option value="History" style="color: black;">📜 History</option>
+                </select>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #bbb; font-size: 0.9rem;">Add a Photo (Max 1MB):</label>
+                    <input type="file" id="photoInput" accept="image/*" style="margin-top: 5px;">
+                </div>
                 
-                
-                <button id="submitBtn" onclick="addTradition()" class="cta-btn" style="width: 100%; margin-top: 15px;">Post Tradition</button>
+                <button id="submitBtn" onclick="addTradition()" class="cta-btn" style="width: 100%;">Post Tradition</button>
                 <button onclick="resetForm()" style="width:100%; background:none; border:none; color:#666; margin-top:10px; cursor:pointer;">Cancel / Reset</button>
             </div>
         </div>

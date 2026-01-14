@@ -135,10 +135,25 @@ function findTraditions() {
     renderList(matches, true); 
 
 }
+// ==========================================
+// 4. UI: RENDER LIST (Fixed: Filters + Share + Google Link)
+// ==========================================
+let currentFilter = 'All'; // Global variable to track active filter
 
-// ==========================================
-// 4. UI: RENDER LIST (Fixed with Smart Google Button)
-// ==========================================
+// Function to handle the button clicks
+function filterBy(category) {
+    currentFilter = category;
+    
+    // Visual: Update buttons
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.classList.remove('active-chip');
+        if(btn.innerText === category) btn.classList.add('active-chip');
+    });
+
+    // Re-run the search to apply the filter
+    findTraditions(); 
+}
+
 function renderList(dataArray, showScore = false) {
     const resultList = document.getElementById("resultList");
     if(!resultList) return;
@@ -151,6 +166,15 @@ function renderList(dataArray, showScore = false) {
     }
 
     dataArray.forEach(t => {
+        // 🛑 1. FILTERING LOGIC (The part you missed!)
+        // If the post has no category, assume it is "General" (Backward Compatibility)
+        let postCategory = t.category || "General";
+
+        // If filter is NOT 'All', and the category doesn't match, SKIP this post
+        if (currentFilter !== 'All' && postCategory !== currentFilter) {
+            return; 
+        }
+
         // A. Score Border Logic
         let borderStyle = "none";
         if(showScore) {
@@ -174,7 +198,7 @@ function renderList(dataArray, showScore = false) {
             `;
         }
 
-        // ✨ D. NEW: Smart Google Image Link (Replaces Photo Upload)
+        // D. Google Image Link (Your lazy fix 😉)
         const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(t.title + " India tradition")}&tbm=isch`;
 
         // E. Clean strings for Share function
@@ -188,17 +212,18 @@ function renderList(dataArray, showScore = false) {
                 
                 <div style="display:flex; justify-content:space-between;">
                     <h3 style="margin:0;">${t.title}</h3>
-                    <small style="background:#eee; padding:2px 8px; border-radius:5px; height:fit-content;">${t.city}</small>
+                    <small style="background:#eee; padding:2px 8px; border-radius:5px; height:fit-content; color:black;">${t.city}</small>
                 </div>
+
+                <span style="font-size:0.7rem; background:#e0f2f1; color:#00695c; padding:3px 8px; border-radius:10px;">${postCategory}</span>
 
                 <a href="${googleSearchUrl}" target="_blank" class="image-btn" style="display:block; margin:10px 0; padding:10px; background:#4285F4; color:white; text-align:center; border-radius:8px; text-decoration:none; font-weight:600;">
                     🖼️ See Photos on Google
                 </a>
 
-                <p style="margin-top:10px; line-height:1.5;">${t.desc}</p>
+                <p style="margin-top:10px; line-height:1.5; color:#333;">${t.desc}</p>
                 
                 <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                    
                     <div style="display:flex; gap:10px;">
                         <button onclick="likeTradition('${t.id}')" 
                                 style="background:none; border:${btnBorder}; color:${heartColor}; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:bold; transition:0.2s; display:flex; align-items:center; gap:5px;">
@@ -209,7 +234,6 @@ function renderList(dataArray, showScore = false) {
                             📤 Share
                         </button>
                     </div>
-                    
                     <div>${ownerBtns}</div>
                 </div>
                 
@@ -221,6 +245,7 @@ function renderList(dataArray, showScore = false) {
         resultList.innerHTML += card;
     });
 }
+
 // ➕ ADD POST (Simplified: No Photo Upload)
 function addTradition() {
     if (!currentUser) return alert("Please Login!");
