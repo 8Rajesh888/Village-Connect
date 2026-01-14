@@ -2,10 +2,11 @@
    VILLAGE CONNECT: FINAL ENGINE 🚀
    Features: Auth, Cloud DB, Smart Search, Smart Likes, Viral Share
    ================================================================== */
-// GLOBAL VARIABLES
+// GLOBAL VARIABLES// GLOBAL VARIABLES
 let currentFilter = 'All'; 
 let globalTraditions = []; 
-let editingId = null; // 👈 THIS tracks if we are editing or creating
+let currentUser = null; 
+let editingId = null; // ✅ We only use THIS one now. Delete 'editId'.
 
 // 1. FIREBASE CONFIGURATION
 const firebaseConfig = {
@@ -24,10 +25,6 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// 🧠 GLOBAL MEMORY
-let globalTraditions = [];
-let currentUser = null; 
-let editId = null;      
 
 // ==========================================
 // 2. STARTUP & AUTHENTICATION
@@ -338,11 +335,18 @@ function finishSubmit() {
 
 
 // 🗑 DELETE POST
+// 🗑 DELETE POST
 function deleteTradition(id) {
-    if(confirm("Delete this?")) {
-        db.collection("traditions").doc(id).delete().then(() => loadFromCloud());
+    if(confirm("Are you sure you want to delete this story?")) {
+        db.collection("traditions").doc(id).delete()
+            .then(() => {
+                alert("🗑 Deleted!");
+                findTraditions(); // Refresh the list without reloading the whole page
+            })
+            .catch((e) => alert("Error: " + e.message));
     }
 }
+
 
 // ✎ EDIT POST
 // ==========================================
@@ -379,9 +383,14 @@ function resetForm() {
     document.getElementById("newTitle").value = "";
     document.getElementById("newDesc").value = "";
     document.getElementById("newDate").value = "";
+    document.getElementById("categoryInput").value = "General"; // Reset category too!
+
     document.getElementById("submitBtn").innerText = "Post Tradition";
-    editId = null;
+    document.getElementById("submitBtn").disabled = false;
+    
+    editingId = null; // ✅ IMPORTANT: Clear the tracker!
 }
+
 
 function showSection(id) {
     document.getElementById("homeSection").style.display = "none";
