@@ -153,7 +153,6 @@ function findTraditions() {
 // ==========================================
 // 4. UI: RENDER CARDS
 // ==========================================
-
 function renderList(dataArray) {
     const resultList = document.getElementById("resultList");
     if(!resultList) return;
@@ -173,17 +172,24 @@ function renderList(dataArray) {
         const isLikedByMe = currentUser && likesArray.includes(currentUser.uid);
         const heartIcon = isLikedByMe ? "❤️" : "🤍";
 
+        // Owner Edit/Delete Buttons
         let ownerBtns = "";
         if (currentUser && t.uid === currentUser.uid) {
             ownerBtns = `
-                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:10px;">✎</button>
+                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:5px;">✎</button>
                 <button onclick="deleteTradition('${t.id}')" style="color:red; background:none; border:none; cursor:pointer;">🗑</button>
             `;
         }
 
         const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(t.title + " India tradition")}&tbm=isch`;
 
-        // --- NEW: Comment Section Structure ---
+        // ⚠️ SAFETY: Remove single quotes from text so it doesn't break the OnClick function
+        const safeTitle = t.title ? t.title.replace(/'/g, "").replace(/"/g, "") : "";
+        const safeDesc = t.desc ? t.desc.replace(/'/g, "").replace(/"/g, "") : "";
+        // Limit description for the voice button so it doesn't read for too long
+        const shortDesc = safeDesc.substring(0, 200); 
+
+        // --- MERGED CARD HTML ---
         const card = `
             <div class="card">
                 <div style="display:flex; justify-content:space-between;">
@@ -199,6 +205,10 @@ function renderList(dataArray) {
 
                 <p style="margin-top:10px; color:#333;">${t.desc}</p>
                 
+                <button onclick="playVoice('${safeTitle}', '${shortDesc}')" style="width:100%; margin-top:10px; background:#e3f2fd; color:#1565c0; border:none; padding:10px; border-radius:10px; cursor:pointer; font-weight:600; display:flex; align-items:center; justify-content:center; gap:10px;">
+                    🔈 Listen to Story
+                </button>
+
                 <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; gap:10px;">
                         <button style="background:none; border:1px solid #ddd; padding:5px 12px; border-radius:20px;">
@@ -209,7 +219,7 @@ function renderList(dataArray) {
                             💬 Discuss
                         </button>
 
-                        <button onclick="shareTradition('${t.title}', '${t.city}')" style="background:#f0f2f5; border:none; color:#2a5298; padding:5px 12px; border-radius:20px; cursor:pointer;">
+                        <button onclick="shareTradition('${safeTitle}', '${t.city}')" style="background:#f0f2f5; border:none; color:#2a5298; padding:5px 12px; border-radius:20px; cursor:pointer;">
                             📤
                         </button>
                     </div>
@@ -232,6 +242,7 @@ function renderList(dataArray) {
         resultList.innerHTML += card;
     });
 }
+
 
 // ==========================================
 // 5. ADD / UPDATE / DELETE / SHARE
@@ -426,4 +437,45 @@ function loadComments(postId) {
               `;
           });
       });
+}
+// ==========================================
+// 8. TEXT TO SPEECH (ACCESSIBILITY)
+// ==========================================
+
+// ==========================================
+// 8. TEXT TO SPEECH (FIXED VERSION)
+// ==========================================
+
+function playVoice(title, desc) {
+    // 1. Check if browser supports speech
+    if (!window.speechSynthesis) {
+        alert("❌ Your browser does not support Voice.");
+        return;
+    }
+
+    // 2. STOP any current talking (Important!)
+    window.speechSynthesis.cancel();
+
+    // 3. Create the message
+    // combining title and desc
+    const fullText = `Story Title: ${title}. ... ${desc}`;
+    const utterance = new SpeechSynthesisUtterance(fullText);
+
+    // 4. SETTINGS (Make it sound better)
+    utterance.volume = 1; // Max volume
+    utterance.rate = 0.9; // Slightly slower
+    utterance.pitch = 1;  // Normal pitch
+    utterance.lang = 'en-IN'; // Try to use Indian English accent if available
+
+    // 5. DEBUG: Alert if text is empty
+    if (!title && !desc) {
+        alert("❌ No text to read!");
+        return;
+    }
+
+    // 6. SPEAK
+    window.speechSynthesis.speak(utterance);
+    
+    // Visual feedback so you know it worked
+    console.log("🔊 Playing audio...");
 }
