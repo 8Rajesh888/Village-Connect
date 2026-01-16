@@ -169,31 +169,23 @@ function renderList(dataArray) {
 
     dataArray.forEach(t => {
         let postCategory = t.category || "General";
-
-        // Smart Like Logic
         const likesArray = t.likedBy || []; 
         const isLikedByMe = currentUser && likesArray.includes(currentUser.uid);
-        const heartColor = isLikedByMe ? "#ff4444" : "#888"; 
         const heartIcon = isLikedByMe ? "❤️" : "🤍";
 
-        // Owner Buttons
         let ownerBtns = "";
         if (currentUser && t.uid === currentUser.uid) {
             ownerBtns = `
-                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:10px;">✎ Edit</button>
-                <button onclick="deleteTradition('${t.id}')" style="color:red; background:none; border:none; cursor:pointer;">🗑 Delete</button>
+                <button onclick="editTradition('${t.id}')" style="color:orange; background:none; border:none; cursor:pointer; margin-right:10px;">✎</button>
+                <button onclick="deleteTradition('${t.id}')" style="color:red; background:none; border:none; cursor:pointer;">🗑</button>
             `;
         }
 
-        // Google Link
         const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(t.title + " India tradition")}&tbm=isch`;
 
-        // Safe Strings for Share
-        const cleanTitle = t.title ? t.title.replace(/'/g, "") : "";
-        const cleanCity = t.city ? t.city.replace(/'/g, "") : "";
-
+        // --- NEW: Comment Section Structure ---
         const card = `
-            <div class="card" style="background:white; padding:15px; border-radius:15px; margin-top:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <div class="card">
                 <div style="display:flex; justify-content:space-between;">
                     <h3 style="margin:0;">${t.title}</h3>
                     <small style="background:#eee; padding:2px 8px; border-radius:5px; height:fit-content; color:black;">${t.city}</small>
@@ -201,7 +193,7 @@ function renderList(dataArray) {
 
                 <span style="font-size:0.7rem; background:#e0f2f1; color:#00695c; padding:3px 8px; border-radius:10px;">${postCategory}</span>
 
-                <a href="${googleSearchUrl}" target="_blank" class="image-btn" style="display:block; margin:10px 0; padding:10px; background:#4285F4; color:white; text-align:center; border-radius:8px; text-decoration:none; font-weight:600;">
+                <a href="${googleSearchUrl}" target="_blank" class="image-btn">
                     🖼️ See Photos
                 </a>
 
@@ -212,12 +204,24 @@ function renderList(dataArray) {
                         <button style="background:none; border:1px solid #ddd; padding:5px 12px; border-radius:20px;">
                             ${heartIcon} ${t.likes || 0}
                         </button>
-                        <button onclick="shareTradition('${cleanTitle}', '${cleanCity}')" 
-                                style="background:#f0f2f5; border:none; color:#2a5298; padding:5px 12px; border-radius:20px; cursor:pointer;">
-                            📤 Share
+                        
+                        <button onclick="toggleComments('${t.id}')" style="background:#fff3e0; border:none; color:#e65100; padding:5px 12px; border-radius:20px; cursor:pointer;">
+                            💬 Discuss
+                        </button>
+
+                        <button onclick="shareTradition('${t.title}', '${t.city}')" style="background:#f0f2f5; border:none; color:#2a5298; padding:5px 12px; border-radius:20px; cursor:pointer;">
+                            📤
                         </button>
                     </div>
                     <div>${ownerBtns}</div>
+                </div>
+
+                <div id="comments-${t.id}" class="comment-section">
+                    <div id="list-${t.id}">Loading thoughts...</div>
+                    <div class="comment-input-area">
+                        <input type="text" id="input-${t.id}" placeholder="Add a memory...">
+                        <button class="send-btn" onclick="postComment('${t.id}')">➤</button>
+                    </div>
                 </div>
                 
                 <small style="color:#999; display:block; margin-top:10px; font-size:0.8rem;">
@@ -361,4 +365,65 @@ function startVoiceSearch() {
         searchBox.placeholder = "Search...";
     };
     recognition.start();
+}
+// ==========================================
+// 7. COMMENTS LOGIC (NEW)
+// ==========================================
+
+// 1. Show/Hide the comment box and load data
+function toggleComments(postId) {
+    const section = document.getElementById(`comments-${postId}`);
+    
+    if (section.style.display === "block") {
+        section.style.display = "none"; // Hide if open
+    } else {
+        section.style.display = "block"; // Show
+        loadComments(postId); // Fetch from Firebase
+    }
+}
+
+// 2. Post a new comment
+function postComment(postId) {
+    if (!currentUser) { alert("Please login to comment!"); return; }
+    
+    const input = document.getElementById(`input-${postId}`);
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Add to a 'sub-collection' in Firestore
+    db.collection("traditions").doc(postId).collection("comments").add({
+        text: text,
+        author: currentUser.displayName,
+        uid: currentUser.uid,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        input.value = ""; // Clear box
+        loadComments(postId); // Refresh list
+    });
+}
+
+// 3. Load comments from Cloud
+function loadComments(postId) {
+    const listDiv = document.getElementById(`list-${postId}`);
+    
+    db.collection("traditions").doc(postId).collection("comments")
+      .orderBy("timestamp", "asc")
+      .get()
+      .then(snapshot => {
+          listDiv.innerHTML = "";
+          if (snapshot.empty) {
+              listDiv.innerHTML = "<small style='color:#999'>No thoughts yet. Be the first!</small>";
+              return;
+          }
+
+          snapshot.forEach(doc => {
+              const c = doc.data();
+              listDiv.innerHTML += `
+                  <div class="comment-box">
+                      <div class="comment-author">${c.author}</div>
+                      <div>${c.text}</div>
+                  </div>
+              `;
+          });
+      });
 }

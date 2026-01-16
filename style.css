@@ -212,3 +212,47 @@ body.dark-mode #navLoginBtn {
     border: none;
     box-shadow: 0 0 10px rgba(0, 198, 255, 0.6); /* Neon Glow Effect */
 }
+/* =========================================
+   6. COMMENTS SECTION (NEW)
+   ========================================= */
+.comment-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    display: none; /* Hidden by default */
+}
+
+.comment-box {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 0.8rem;
+}
+
+.comment-input-area {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.comment-input-area input {
+    margin: 0;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+.send-btn {
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 15px;
+    cursor: pointer;
+}
