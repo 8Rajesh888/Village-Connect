@@ -40,16 +40,7 @@ window.onload = function() {
     console.log("🚀 App Starting...");
 
     // --- 🔌 FORCE BUTTON CONNECTION ---
-    const myPostsBtn = document.getElementById("myPostsBtn");
-    if (myPostsBtn) {
-        // Remove old listeners to be safe and add the new one
-        myPostsBtn.onclick = null; 
-        myPostsBtn.addEventListener("click", filterMyPosts);
-        console.log("✅ 'My Posts' button is WIRED.");
-    } else {
-        console.error("❌ CRITICAL: Could not find button with id='myPostsBtn' in HTML.");
-        alert("Dev Error: The 📂 button ID is missing in index.html");
-    }
+    
     // ----------------------------------
 
     loadFromCloud(); // Initial Load
@@ -503,6 +494,18 @@ function playVoice(title, desc) {
 
 function filterMyPosts() {
     // 1. Check Login
+    function filterMyPosts() {
+    alert("📢 I AM ALIVE!"); // <--- TYPE THIS LINE. DO NOT SKIP IT.
+
+    // 1. Check Login
+    if (!currentUser) {
+        alert("🔒 Please login to see your posts!");
+        return;
+    }
+    
+    // ... rest of your code ...
+}
+
     if (!currentUser) {
         alert("🔒 Please login to see your posts!");
         return;
