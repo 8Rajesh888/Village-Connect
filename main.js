@@ -32,8 +32,26 @@ let currentUser = null;    // Tracks logged-in user
 // 2. STARTUP & AUTHENTICATION
 // ==========================================
 
+// ==========================================
+// 2. STARTUP & AUTHENTICATION
+// ==========================================
+
 window.onload = function() {
     console.log("🚀 App Starting...");
+
+    // --- 🔌 FORCE BUTTON CONNECTION ---
+    const myPostsBtn = document.getElementById("myPostsBtn");
+    if (myPostsBtn) {
+        // Remove old listeners to be safe and add the new one
+        myPostsBtn.onclick = null; 
+        myPostsBtn.addEventListener("click", filterMyPosts);
+        console.log("✅ 'My Posts' button is WIRED.");
+    } else {
+        console.error("❌ CRITICAL: Could not find button with id='myPostsBtn' in HTML.");
+        alert("Dev Error: The 📂 button ID is missing in index.html");
+    }
+    // ----------------------------------
+
     loadFromCloud(); // Initial Load
     
     // Theme Check
@@ -43,6 +61,7 @@ window.onload = function() {
         if(btn) btn.innerText = "☀️";
     }
 };
+
 
 // Monitor User Login Status
 auth.onAuthStateChanged((user) => {
@@ -513,4 +532,6 @@ function filterMyPosts() {
     }
 }
 
+console.log("✅ Main.js finished loading!");
+alert("System Online"); 
 
