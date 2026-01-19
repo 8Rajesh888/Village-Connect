@@ -478,40 +478,39 @@ function playVoice(title, desc) {
     
     // Visual feedback so you know it worked
     console.log("🔊 Playing audio...");
-}
+}// ==========================================
+// 9. MY POSTS FILTER (FIXED)
+// ==========================================
+
 function filterMyPosts() {
-    // DEBUG 1: Did the button even work?
-    alert("Step 1: Button clicked!");
-
-    // DEBUG 2: Check User Status
+    // 1. Check Login
     if (!currentUser) {
-        alert("Error: You are NOT logged in!");
+        alert("🔒 Please login to see your posts!");
         return;
     }
-    alert("Step 2: User found -> " + currentUser.uid);
 
-    // DEBUG 3: Check if data exists
-    // We need to make sure 'allPosts' variable actually exists globally
-    if (typeof allPosts === 'undefined' || !allPosts) {
-        alert("CRITICAL ERROR: 'allPosts' variable is missing! The app didn't save the data list.");
-        return;
-    }
-    alert("Step 3: I see " + allPosts.length + " total posts in memory.");
+    // 2. Filter the existing Global Data
+    // We use 'globalTraditions' because that is where loadFromCloud() saved the data.
+    const myPosts = globalTraditions.filter(item => item.uid === currentUser.uid);
 
-    // The Filter Logic
-    const myPosts = allPosts.filter(post => post.uid === currentUser.uid);
+    // 3. Update the UI
+    // We reuse your existing render function! It handles the HTML generation.
+    renderList(myPosts);
 
-    alert("Step 4: Found " + myPosts.length + " posts belonging to you.");
-
-    const feedContainer = document.getElementById('postContainer'); 
-    feedContainer.innerHTML = ''; 
-
+    // 4. Update the Filter Chips (Visual Feedback)
+    document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active-chip'));
+    
+    // 5. Show a message if empty
     if (myPosts.length === 0) {
-        feedContainer.innerHTML = '<h3 style="color:white; text-align:center;">No posts found for this user ID. 🍂</h3>';
-    } else {
-        myPosts.forEach(post => {
-            renderPost(post); 
-        });
+        document.getElementById("resultList").innerHTML = `
+            <div style="text-align:center; margin-top:50px;">
+                <h3>You haven't posted anything yet! 🍂</h3>
+                <button onclick="showSection('add')" style="margin-top:10px; padding:10px 20px; background:#ff9800; border:none; border-radius:5px; color:white;">
+                    Create First Post
+                </button>
+            </div>
+        `;
     }
 }
+
 
