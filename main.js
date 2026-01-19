@@ -480,28 +480,38 @@ function playVoice(title, desc) {
     console.log("🔊 Playing audio...");
 }
 function filterMyPosts() {
-    // 1. Check if user is logged in
+    // DEBUG 1: Did the button even work?
+    alert("Step 1: Button clicked!");
+
+    // DEBUG 2: Check User Status
     if (!currentUser) {
-        alert("Please login to see your posts!");
+        alert("Error: You are NOT logged in!");
         return;
     }
+    alert("Step 2: User found -> " + currentUser.uid);
 
-    // 2. Clear the current feed
-    const feedContainer = document.getElementById('postContainer'); // Or whatever ID your main feed has
-    feedContainer.innerHTML = ''; 
+    // DEBUG 3: Check if data exists
+    // We need to make sure 'allPosts' variable actually exists globally
+    if (typeof allPosts === 'undefined' || !allPosts) {
+        alert("CRITICAL ERROR: 'allPosts' variable is missing! The app didn't save the data list.");
+        return;
+    }
+    alert("Step 3: I see " + allPosts.length + " total posts in memory.");
 
-    // 3. Filter and Render
-    // Assuming 'allPosts' is the array where you stored data from Firebase
+    // The Filter Logic
     const myPosts = allPosts.filter(post => post.uid === currentUser.uid);
 
+    alert("Step 4: Found " + myPosts.length + " posts belonging to you.");
+
+    const feedContainer = document.getElementById('postContainer'); 
+    feedContainer.innerHTML = ''; 
+
     if (myPosts.length === 0) {
-        feedContainer.innerHTML = '<h3 style="color:white; text-align:center;">You haven\'t posted anything yet! 🍂</h3>';
+        feedContainer.innerHTML = '<h3 style="color:white; text-align:center;">No posts found for this user ID. 🍂</h3>';
     } else {
-        // Change the header to let them know they are in "My Posts" mode
-        // (Optional: add a header element to your HTML to update)
-        
         myPosts.forEach(post => {
-            renderPost(post); // Reuse your existing render function
+            renderPost(post); 
         });
     }
 }
+
