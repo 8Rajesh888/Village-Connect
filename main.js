@@ -479,3 +479,29 @@ function playVoice(title, desc) {
     // Visual feedback so you know it worked
     console.log("🔊 Playing audio...");
 }
+function filterMyPosts() {
+    // 1. Check if user is logged in
+    if (!currentUser) {
+        alert("Please login to see your posts!");
+        return;
+    }
+
+    // 2. Clear the current feed
+    const feedContainer = document.getElementById('postContainer'); // Or whatever ID your main feed has
+    feedContainer.innerHTML = ''; 
+
+    // 3. Filter and Render
+    // Assuming 'allPosts' is the array where you stored data from Firebase
+    const myPosts = allPosts.filter(post => post.uid === currentUser.uid);
+
+    if (myPosts.length === 0) {
+        feedContainer.innerHTML = '<h3 style="color:white; text-align:center;">You haven\'t posted anything yet! 🍂</h3>';
+    } else {
+        // Change the header to let them know they are in "My Posts" mode
+        // (Optional: add a header element to your HTML to update)
+        
+        myPosts.forEach(post => {
+            renderPost(post); // Reuse your existing render function
+        });
+    }
+}
