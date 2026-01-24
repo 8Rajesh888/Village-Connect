@@ -270,7 +270,11 @@ body.dark-mode #navLoginBtn {
 }
 
 /* The Wheel of Time (Your Code - Perfect) */
-.chakra {
+    .chakra {
+    /* ... your existing size/border code ... */
+    
+    margin: 0; /* <--- Removes any hidden invisible pushing */
+
     width: 150px;
     height: 150px;
     border-radius: 50%;
@@ -309,13 +313,21 @@ body.dark-mode #navLoginBtn {
 .flag-card {
     width: 300px;
     height: 200px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* The "Pop" Shadow */
+    
+    /* 1. CENTER THE CARD ON SCREEN */
+    margin: 20px auto; /* <--- THIS IS THE FIX */
+    
+    /* 2. Style & Animation */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     border-radius: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    animation: float 3s ease-in-out infinite; /* Makes it breathe */
+    animation: float 3s ease-in-out infinite;
+    position: relative; /* Keeps it stable */
+    z-index: 1; /* Ensures it sits above background but below text */
 }
+
 
 /* The Three Bands */
 .band {
