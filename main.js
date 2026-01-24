@@ -535,6 +535,3 @@ function filterMyPosts() {
     }
 }
 
-console.log("✅ Main.js finished loading!");
-alert("System Online"); 
-
